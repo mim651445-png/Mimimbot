@@ -24,7 +24,7 @@ module.exports.handleEvent = async function ({
   const botVoices = [
     "https://files.catbox.moe/3mp5xc.mp3",
     "https://files.catbox.moe/faql6m.mp3",
-    "https://files.catbox.moe/gzq54t.mp3",
+    "https://files.catbox.moe/bkyb3n.mp3",
     "https://files.catbox.moe/v4l3im.mp3",
     "https://files.catbox.moe/d80i6p.mp3",
     "https://files.catbox.moe/3u6shs.mp3"
