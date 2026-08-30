@@ -3,10 +3,11 @@ const fs = require("fs-extra");
 const path = require("path");
 
 const CACHE_DIR = path.join(__dirname, "cache");
-
 if (!fs.existsSync(CACHE_DIR)) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
 }
+
+const INDEX_FILE = path.join(CACHE_DIR, "videoIndex.json");
 
 // 🎬 VIDEO LIST
 const videoList = [
@@ -32,7 +33,34 @@ const videoList = [
   }
 ];
 
-const indexFile = path.join(CACHE_DIR, "videoIndex.json");
+// 👑 ADMIN CONFIG
+const ADMIN_UID = "61593296285457";
+const ADMIN_NAME = "হৃদয় হাসান শান্ত";
+
+const triggers = [
+  "@Šħẫňto Hřiȡẫy Ħẫššẫň",
+  "hriday hassan shanto",
+  "হৃদয় হাসান শান্ত",
+  "হৃদয়",
+  "হৃদয় ভাই",
+  "boss hriday",
+  "রাব্বি ভাই",
+  "বট অ্যাডমিন কে"
+];
+
+// 💬 CAPTIONS
+const captions = [
+  "🇲🇾 হৃদয় হাসান শান্তকে বেশি মেনশন দিও না! 😹💔",
+  "🥀 হৃদয় হাসান শান্ত অনলাইনে আছে, কিন্তু ভাগ্য এখনো অফলাইনে! 🤧",
+  "😎 বস এখন বিজি, প্রেমের আবেদন পরে জমা দিন! 📩😂",
+  "💔 এত মেনশন কেন? বসের ইনবক্সে আজও শান্তি নাই! 😹",
+  "🤭 বসের জন্য একটা ভালো মনের মানুষ খুঁজে দাও আগে! 😂",
+  "🇲🇾 হৃদয় হাসান শান্ত কাজে ব্যস্ত, কিন্তু মেনশন দেখলে হাজির! 😎",
+  "🔥 বসকে মেনশন করলে জরিমানা নেই, তবে একটা হাসি দিতে হবে! 😹",
+  "🫂 সিঙ্গেল লাইফ চলছে, তাই বেশি ডিস্টার্ব না করাই ভালো! 😂",
+  "🥺 মেনশন পেলেই বসের পুরনো স্মৃতি মনে পড়ে যায়! 💔",
+  "😹 হৃদয় হাসান শান্ত হাজির! এখন বলেন, কী দরকার?"
+];
 
 // 📥 DOWNLOAD VIDEO
 async function downloadVideo(video) {
@@ -47,7 +75,7 @@ async function downloadVideo(video) {
       method: "GET",
       url: video.url,
       responseType: "stream",
-      timeout: 30000
+      timeout: 60000
     });
 
     const writer = fs.createWriteStream(filePath);
@@ -59,117 +87,82 @@ async function downloadVideo(video) {
       writer.on("error", reject);
     });
 
-    console.log("✅ Downloaded:", video.file);
+    console.log(`✅ Downloaded: ${video.file}`);
 
     return filePath;
+
   } catch (error) {
-    console.log("❌ Download Error:", error.message);
+    console.log(`❌ Download failed: ${video.file}`);
+    console.log(error.message);
+
     return null;
   }
 }
 
-// 🚀 DOWNLOAD ALL VIDEOS
+// 🚀 PRELOAD ALL VIDEOS
 async function preloadVideos() {
+  console.log("📥 Admin3 video preload started...");
+
   for (const video of videoList) {
     await downloadVideo(video);
   }
+
+  console.log("✅ Admin3 video preload completed.");
 }
 
 preloadVideos();
 
-module.exports = {
-  config: {
-    name: "admin3",
-    version: "1.0.0",
-    author: "Hriday Hassan Shanto",
-    countDown: 0,
-    role: 0,
-    shortDescription: "Admin mention video reply",
-    longDescription: "Admin mention করলে random caption সহ ভিডিও reply করবে",
-    category: "system"
-  },
+module.exports.config = {
+  name: "admin3",
+  version: "2.0.0",
+  hasPermssion: 0,
+  credits: ADMIN_NAME,
+  description: "Admin mention video reply",
+  commandCategory: "system",
+  usages: "",
+  cooldowns: 1
+};
 
-  onStart: async function () {},
+// 📌 MIRAI EVENT
+module.exports.handleEvent = async function ({ api, event }) {
+  try {
 
-  onChat: async function ({ api, event, message }) {
-    try {
-      const admins = [
-        {
-          uid: "61593296285457",
+    const senderID = String(event.senderID || "");
+    if (!senderID) return;
 
-          triggers: [
-            "@Šħẫňto Hřiȡẫy Ħẫššẫň",
-            "hriday hassan shanto",
-            "হৃদয়",
-            "হৃদয় ভাই",
-            "boss hriday",
-            "হৃদয় ভাই",
-            "রাব্বি ভাই",
-            "বট অ্যাডমিন কে"
-          ]
-        }
-      ];
+    // 👑 Admin নিজে লিখলে reply করবে না
+    if (senderID === ADMIN_UID) return;
 
-      const senderID = String(event.senderID || "");
+    const body = String(event.body || "").trim();
 
-      if (!senderID) return;
+    if (!body) return;
 
-      // 👑 ADMIN নিজে লিখলে reply করবে না
-      if (admins.some(admin => String(admin.uid) === senderID)) {
-        return;
+    const text = body.toLowerCase();
+
+    // 👤 Mention check
+    let mentionFound = false;
+
+    if (event.mentions) {
+      const mentionedIDs = Object.keys(event.mentions).map(id => String(id));
+
+      if (mentionedIDs.includes(ADMIN_UID)) {
+        mentionFound = true;
       }
+    }
 
-      const text = String(event.body || "")
-        .toLowerCase()
-        .trim();
+    // 🔍 Keyword check
+    const keywordFound = triggers.some(trigger =>
+      text.includes(trigger.toLowerCase())
+    );
 
-      if (!text) return;
+    // ❌ কোনো trigger না থাকলে return
+    if (!mentionFound && !keywordFound) return;
 
-      // 👤 Mention check
-      const mentionedIDs = event.mentions
-        ? Object.keys(event.mentions).map(id => String(id))
-        : [];
+    // 💬 Random caption
+    const caption =
+      captions[Math.floor(Math.random() * captions.length)];
 
-      // 🔍 ADMIN TRIGGER CHECK
-      const triggeredAdmin = admins.find(admin => {
-        const mentionFound = mentionedIDs.includes(String(admin.uid));
-
-        const textFound = admin.triggers.some(trigger =>
-          text.includes(trigger.toLowerCase())
-        );
-
-        return mentionFound || textFound;
-      });
-
-      if (!triggeredAdmin) return;
-
-      // 💬 RANDOM CAPTION
-      const captions = [
-        "🇲🇾 মালয়েশিয়া সিঙ্গেল বয়কে বেশি মেনশন দিও না! 😹💔",
-
-        "🥀 মালয়েশিয়া সিঙ্গেল বয় অনলাইনে আছে, কিন্তু ভাগ্য এখনো অফলাইনে! 🤧",
-
-        "😎 বস এখন বিজি, প্রেমের আবেদন পরে জমা দিন! 📩😂",
-
-        "💔 এত মেনশন কেন? বসের ইনবক্সে আজও শান্তি নাই! 😹",
-
-        "🤭 বসের জন্য একটা ভালো মনের মানুষ খুঁজে দাও আগে! 😂",
-
-        "🇲🇾 মালয়েশিয়া সিঙ্গেল বয় কাজে ব্যস্ত, কিন্তু মেনশন দেখলে হাজির! 😎",
-
-        "🔥 বসকে মেনশন করলে জরিমানা নেই, তবে একটা হাসি দিতে হবে! 😹",
-
-        "🫂 সিঙ্গেল লাইফ চলছে, তাই বেশি ডিস্টার্ব না করাই ভালো! 😂",
-
-        "🥺 মেনশন পেলেই বসের পুরনো স্মৃতি মনে পড়ে যায়! 💔",
-
-        "😹 মালয়েশিয়া সিঙ্গেল বয় হাজির! এখন বলেন, কী দরকার?"
-      ];
-
-      const caption =
-        captions[Math.floor(Math.random() * captions.length)];
-
-      const styledCaption = `
+    const styledCaption = `
 ╭━━━━━━━━━━━━━━━━━━╮
       👑 𝗔𝗗𝗠𝗜𝗡 𝗠𝗘𝗡𝗧𝗜𝗢𝗡
 ╰━━━━━━━━━━━━━━━━━━╯
@@ -181,65 +174,84 @@ module.exports = {
 ╰━━━━━━━━━━━━━━━━━━╯
 `;
 
-      // 🎬 READ VIDEO INDEX
-      let currentIndex = 0;
+    // 🎬 Read current video index
+    let currentIndex = 0;
 
-      if (fs.existsSync(indexFile)) {
-        try {
-          const data = JSON.parse(
-            fs.readFileSync(indexFile, "utf8")
-          );
+    if (fs.existsSync(INDEX_FILE)) {
+      try {
+        const data = JSON.parse(
+          fs.readFileSync(INDEX_FILE, "utf8")
+        );
 
-          if (
-            typeof data.index === "number" &&
-            data.index >= 0 &&
-            data.index < videoList.length
-          ) {
-            currentIndex = data.index;
-          }
-        } catch (error) {
-          currentIndex = 0;
+        if (
+          typeof data.index === "number" &&
+          data.index >= 0 &&
+          data.index < videoList.length
+        ) {
+          currentIndex = data.index;
         }
+
+      } catch (e) {
+        currentIndex = 0;
       }
+    }
 
-      const selectedVideo = videoList[currentIndex];
+    const selectedVideo = videoList[currentIndex];
 
-      // 🔄 NEXT VIDEO
-      const nextIndex =
-        (currentIndex + 1) % videoList.length;
+    // 🔄 Save next video index
+    const nextIndex =
+      (currentIndex + 1) % videoList.length;
 
-      fs.writeFileSync(
-        indexFile,
-        JSON.stringify({ index: nextIndex }, null, 2)
+    fs.writeFileSync(
+      INDEX_FILE,
+      JSON.stringify(
+        { index: nextIndex },
+        null,
+        2
+      )
+    );
+
+    // 📥 Download video
+    const videoPath = await downloadVideo(selectedVideo);
+
+    // ❌ Video unavailable
+    if (!videoPath || !fs.existsSync(videoPath)) {
+      return api.sendMessage(
+        styledCaption,
+        event.threadID,
+        event.messageID
       );
+    }
 
-      // 📥 DOWNLOAD SELECTED VIDEO
-      const videoPath = await downloadVideo(selectedVideo);
-
-      // ❌ VIDEO DOWNLOAD FAILED
-      if (!videoPath || !fs.existsSync(videoPath)) {
-        await message.reply(styledCaption);
-        return;
-      }
-
-      // 📤 SEND VIDEO
-      await message.reply({
+    // 📤 Send video
+    return api.sendMessage(
+      {
         body: styledCaption,
         attachment: fs.createReadStream(videoPath)
-      });
+      },
+      event.threadID,
+      event.messageID
+    );
 
-      console.log(
-        `✅ Admin mention reply sent: ${selectedVideo.file}`
+  } catch (error) {
+
+    console.log("❌ Admin3 Error:", error);
+
+    try {
+      return api.sendMessage(
+        "❌ Admin mention reply দিতে সমস্যা হয়েছে!",
+        event.threadID,
+        event.messageID
       );
-
-    } catch (error) {
-      console.log("❌ Admin3 Error:", error);
-
-      try {
-        await message.reply(
-          "❌ Admin mention reply দিতে সমস্যা হয়েছে!"
-        );
-      } catch (e) {}
-    }
+    } catch (e) {}
   }
+};
+
+// 📌 COMMAND SUPPORT
+module.exports.run = async function ({ api, event }) {
+  return api.sendMessage(
+    "✅ Admin3 চালু আছে!\n\n👑 Admin mention করলে ভিডিও রিপ্লাই করবে।",
+    event.threadID,
+    event.messageID
+  );
 };
