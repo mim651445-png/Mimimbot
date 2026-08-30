@@ -8,7 +8,7 @@ let lastPlayed = -1;
 const AUTHOR_LOCK = "FARHAN-KHAN";
 
 module.exports.config = {
-  name: "gana",
+  name: "gan",
   version: "1.0.2",
   hasPermssion: 0,
   credits: AUTHOR_LOCK,
