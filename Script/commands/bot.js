@@ -149,9 +149,9 @@ module.exports.handleEvent = async function ({
     // 🤖 BOT NAME
     // ================================
     if (
-      text === "bot" ||
+      text === "@mim mim" ||
       text === "obot" ||
-      text === "বট"
+      text === "মিম"
     ) {
       let name = "বন্ধু";
 
