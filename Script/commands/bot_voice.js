@@ -31,11 +31,11 @@ module.exports.handleEvent = async function ({
   ];
 
   const voiceMap = {
-    "bot": botVoices,
-    "বট": botVoices,
+    "bby": botVoices,
+    "ডিম ": botVoices,
     "mim": botVoices,
-    "janu": botVoices,
-    "বেবি": botVoices
+    "@mim mim": botVoices,
+    "মিম": botVoices
   };
 
   const firstWord = input.split(" ")[0];
