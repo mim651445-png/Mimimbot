@@ -1,156 +1,17 @@
-const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
-
 module.exports.config = {
-  name: "বিদেশি_ছবি",
-  version: "2.0.0",
-  hasPermssion: 0,
-  credits: "হৃদয় হাসান শান্ত",
-  description: "Random foreign travel & nature photo",
+  name: "বিদেশি_গরু",
+  version: "1.0.0",
+  hasPermssion: 2,
+  credits: "hriday hassan shanto",
+  description: "Random ảnh girl",
   commandCategory: "Random-IMG",
   usages: "",
-  cooldowns: 3
-};
-
-// 🌍 বিদেশি Travel / Nature ছবি
-const imageLinks = [
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-  "https://images.unsplash.com/photo-1500534623283-312aade485b7",
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-  "https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
-  "https://images.unsplash.com/photo-1500534623283-312aade485b7",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
-];
-
-const captions = [
-  "🌍 বিদেশের সুন্দর দৃশ্য—মনটাই ভালো হয়ে গেল! ✨",
-  "✈️ ঘুরতে যাওয়ার ইচ্ছাটা আবার জেগে উঠলো! 😌",
-  "🏔️ প্রকৃতির সৌন্দর্যের কাছে সবকিছুই ছোট! 💚",
-  "🌿 একটু শান্তি, একটু প্রকৃতি—ব্যস এতটুকুই চাই! 🥰",
-  "🌅 পৃথিবীটা সত্যিই অনেক সুন্দর! ✨",
-  "🗺️ একদিন আমিও এমন জায়গায় ঘুরতে যাবো! 😎",
-  "✈️ Destination: Somewhere Beautiful 🌍",
-  "💫 ছবিটা দেখেই মনে হচ্ছে বিদেশে চলে যাই!"
-];
-
-module.exports.run = async function ({ api, event }) {
-  const cacheDir = path.join(__dirname, "cache");
-
-  try {
-    await fs.ensureDir(cacheDir);
-
-    const filePath = path.join(
-      cacheDir,
-      `foreign_${Date.now()}.jpg`
-    );
-
-    // 🎲 Random image + caption
-    const randomImage =
-      imageLinks[Math.floor(Math.random() * imageLinks.length)];
-
-    const randomCaption =
-      captions[Math.floor(Math.random() * captions.length)];
-
-    // ⏳ Loading message
-    const loading = await api.sendMessage(
-      "╭━━━━━━━━━━━━━━╮\n" +
-      "      🌍 বিদেশি ছবি\n" +
-      "╰━━━━━━━━━━━━━━╯\n\n" +
-      "🔄 ছবি খোঁজা হচ্ছে...\n" +
-      "▒▒▒▒▒▒▒▒▒▒ 0%",
-      event.threadID
-    );
-
-    // 🔄 Loading animation
-    let progress = 0;
-
-    const timer = setInterval(() => {
-      progress += 20;
-
-      if (progress >= 100) {
-        clearInterval(timer);
-        return;
-      }
-
-      const filled = "█".repeat(progress / 10);
-      const empty = "▒".repeat(10 - progress / 10);
-
-      api.editMessage(
-        `${filled}${empty} ${progress}% 🌍`,
-        loading.messageID,
-        event.threadID
-      );
-    }, 250);
-
-    // 📥 Download image
-    const response = await axios.get(
-      randomImage + "?auto=format&fit=crop&w=1200&q=85",
-      {
-        responseType: "stream",
-        timeout: 15000
-      }
-    );
-
-    const writer = fs.createWriteStream(filePath);
-
-    response.data.pipe(writer);
-
-    await new Promise((resolve, reject) => {
-      writer.on("finish", resolve);
-      writer.on("error", reject);
-    });
-
-    // ছোট delay
-    await new Promise(resolve => setTimeout(resolve, 700));
-
-    // Loading delete
-    try {
-      await api.unsendMessage(loading.messageID);
-    } catch (e) {}
-
-    // 📸 Send image
-    api.sendMessage(
-      {
-        body:
-          "╭━━━━━━━━━━━━━━╮\n" +
-          "     🌍 𝗙𝗢𝗥𝗘𝗜𝗚𝗡 𝗩𝗜𝗘𝗪\n" +
-          "╰━━━━━━━━━━━━━━╯\n\n" +
-          `${randomCaption}\n\n` +
-          "━━━━━━━━━━━━━━━━\n" +
-          "💚 𝗛𝗿𝗶𝗱𝗼𝘆 𝗕𝗼𝘁\n" +
-          "━━━━━━━━━━━━━━━━",
-        attachment: fs.createReadStream(filePath)
-      },
-      event.threadID,
-      async () => {
-        // 🗑️ Temporary file delete
-        try {
-          await fs.unlink(filePath);
-        } catch (e) {}
-
-        // ❤️ Reaction
-        try {
-          await api.setMessageReaction(
-            "🌍",
-            loading.messageID,
-            () => {},
-            true
-          );
-        } catch (e) {}
-      }
-    );
-
-  } catch (error) {
-    console.error("Foreign Image Error:", error);
-
-    try {
-      await api.sendMessage(
-        "❌ বিদেশি ছবিটি লোড করা সম্ভব হয়নি।\n🔄 কিছুক্ষণ পরে আবার চেষ্টা করো।",
-        event.threadID
-      );
-    } catch (e) {}
+  cooldowns: 2,
+  dependencies: {
+    "request":"",
+    "fs-extra":"",
+    "axios":""
   }
 };
+
+function _0x4140(){const _0x34e77a=['https://i.postimg.cc/MGHWPQHN/343875ae9c9050ce098116.jpg','https://i.imgur.com/e2xuLjB.jpg','https://i.postimg.cc/13t1GH4S/242091121-156046100039283-380060867800578540-n.jpg','https://i.imgur.com/nLrLI5a.jpg','https://i.imgur.com/COqwBC1.jpg','https://i.postimg.cc/pT8M4YHG/ga-i-xinh-ga-i-e-p-ma-t-sie-u-de-thu-o-ng17.jpg','https://i.imgur.com/fk0NwMN.jpg','https://i.postimg.cc/NfjzS0t7/273182988-648811146442168-6253942538852908557-n.jpg','https://i.imgur.com/ISLIYWY.jpg','https://i.imgur.com/IT8yhUM.jpg','length','https://i.imgur.com/ZP8Rt6X.jpg','https://i.imgur.com/kGDQlEo.jpg','https://i.imgur.com/zB86OHv.jpg','https://i.postimg.cc/GpfbZms2/795aa9cf40f18cafd5e013.jpg','470nBoadE','createWriteStream','https://i.imgur.com/ZYBotms.jpg','693teAAaf','https://i.imgur.com/TyM0dUS.jpg','https://i.imgur.com/KuF7iNW.jpg','https://i.imgur.com/gpFOq8u.jpg','https://i.imgur.com/Fbmn8pJ.jpg','https://i.imgur.com/GRoq1bw.jpg','https://i.postimg.cc/N0ns9nxZ/240672764-173950671582159-4608395208819502450-n.jpg','https://i.imgur.com/KFwCJys.jpg','https://i.postimg.cc/8zPDc6Rc/Chu-m-a-nh-ga-i-xinh-2k4-mu-o-n-mo-n-tuo-i-da-y-thi-6.jpg','https://i.postimg.cc/1txxZ1BR/244968434-175790071398219-6017877933733187947-n.jpg','https://i.imgur.com/kNi5OwZ.jpg','https://i.postimg.cc/GtNs51Pw/a9d0daf9754eb910e05f36.jpg','https://i.imgur.com/b4vmkJc.jpg','https://i.imgur.com/EWIwuLd.jpg','https://i.imgur.com/47dMIkP.jpg','592761VaThvp','https://i.imgur.com/eMbGZ4t.jpg','https://i.imgur.com/YP28MO8.jpg','https://i.imgur.com/6zg0uxN.jpg','https://i.imgur.com/skZasjw.jpg','https://i.postimg.cc/3xcMwbrf/Nhu-ng-co-ga-i-e-p-nhu-ng-na-ng-ga-i-xinh-so-hu-u-gu-o-ng-ma-t-nhu-thie-n-tha-n3.jpg','https://i.postimg.cc/02v9g3rp/a-nh-ga-i-xinh-die-n-a-o-da-i-Sie-u-de-thu-o-ng2.jpg','https://i.imgur.com/5Utsv72.jpg','https://i.postimg.cc/Xv09W3Rn/710dd93f7688bad6e39931.jpg','https://i.imgur.com/OlbhP3I.jpg','https://i.imgur.com/GFlJZrX.jpg','4007616tyTVBu','https://i.postimg.cc/52x9zGVx/2498c4d24df63032670ce511ad00abd9.jpg','https://i.imgur.com/D73XkSb.jpg','https://i.imgur.com/18hfC7q.jpg','threadID','https://i.postimg.cc/J7ZR2m7r/b2232e0d7a837addc9b7b435efbe9939.jpg','https://i.imgur.com/xGTYbOn.jpg','https://i.postimg.cc/DfrKcg5m/ga-i-xinh-ga-i-e-p-ma-t-sie-u-de-thu-o-ng48.jpg','https://i.postimg.cc/3RD37QgZ/9b416d2d9b13574d0e0210.jpg','https://i.imgur.com/87tIKH3.jpg','https://i.imgur.com/pC2aXuC.jpg','https://i.imgur.com/hPqyBrA.jpg','repeat','https://i.imgur.com/7U2V2jM.jpg','https://i.postimg.cc/RZsmHZdR/ga-i-xinh-50.jpg','https://i.imgur.com/dw3BhAm.jpg','https://i.imgur.com/KDrZUTI.jpg','https://i.postimg.cc/nVkW3Dyh/271825896-236032855373940-7222734720576414966-n.jpg','fs-extra','https://i.imgur.com/Ryu6QWZ.jpg','https://i.postimg.cc/YqtH9kHh/242430585-158600489783844-7367627965628180531-n.jpg','https://i.postimg.cc/YSX5PfwN/004aab23822f4d71143e8.jpg','8066665mMvxes','https://i.imgur.com/G4ZkJgb.jpg','https://i.imgur.com/D7SErWN.jpg','createReadStream','https://i.imgur.com/e8Hs2LK.jpg','https://i.postimg.cc/nh0cZr9F/200334998-116476810662879-8276134121970366200-n.jpg','https://i.postimg.cc/8zvLxsny/6ed740e3ef54230a7a4533.jpg','https://i.postimg.cc/g25Qvbfy/270465891-226327139677845-2684258203782247843-n.jpg','https://i.imgur.com/h3EJCxZ.jpg','https://i.postimg.cc/8CxVZXqf/ga-i-xinh-die-n-a-o-da-i1.jpg','close','run','https://i.postimg.cc/Znxzcsrb/242384059-164209922556234-256235901597578295-n.jpg','https://i.imgur.com/kpFhb0p.jpg','https://i.imgur.com/myWiaZq.jpg','https://i.imgur.com/A1dtgTQ.jpg','https://i.imgur.com/71wOpEu.jpg','https://i.imgur.com/8j6zktC.jpg','https://i.imgur.com/zvSZRzy.jpg','2254726zKwTlN','https://i.imgur.com/Ap5k1pG.jpg','https://i.imgur.com/va0ms79.jpg','https://i.imgur.com/PKXpOLt.jpg','https://i.postimg.cc/sfGknhHS/416dea1dc3110c4f550024.jpg','https://i.postimg.cc/2S6RrfYB/hot-gymer-quang-ninh-so-huu-body-hap-dan-trieu-co-gai-uoc-ao-hinh-16.jpg','https://i.imgur.com/Zjzx5LB.jpg','https://i.postimg.cc/Y0FTj5L8/64b725dd0cd1c38f9ac07.jpg','https://i.imgur.com/eKO5bbW.jpg','https://i.imgur.com/7jaK4D2.jpg','random','https://i.imgur.com/ELw4MXY.jpg','https://i.imgur.com/dpm9YSJ.jpg','https://i.postimg.cc/G3GLtqTS/241341079-175707984739761-7337459266933401806-n.jpg','https://i.postimg.cc/gjdfny1f/254007586-189722430004983-5012656765537255913-n.jpg','https://i.imgur.com/qDCx7ZN.jpg','https://i.imgur.com/2bxwpSN.jpg','https://i.imgur.com/JB9Ma7r.jpg','https://i.imgur.com/CA6ArRA.jpg','https://i.imgur.com/2SKrp2u.jpg','https://i.imgur.com/UUTCTH8.jpg','https://i.postimg.cc/mDFbQSXk/241230696-157171143260112-7934560549275342134-n.jpg','error','https://i.imgur.com/h1VBTPR.jpg','floor','https://i.imgur.com/08RUzA6.jpg','https://i.postimg.cc/L8N93T9j/648f79aa1005d863fb2cc8c85102fe99.jpg','https://i.postimg.cc/g2r1X2Bk/269815221-229324922711400-2005289245832992595-n.jpg','https://i.imgur.com/uzlkEbQ.jpg','https://i.imgur.com/JQOU5F3.jpg','nodemodule','https://i.imgur.com/LVkwzaJ.jpg','https://i.imgur.com/w7KAi99.jpg','https://i.imgur.com/c1jWpDB.jpg','https://i.imgur.com/YChnU4J.jpg','https://i.imgur.com/4zqMGJM.jpg','https://i.imgur.com/Y92A06z.jpg','https://i.imgur.com/aPpMYin.jpg','https://i.postimg.cc/dt8zFKYV/aa85e0e9c9e506bb5ff427.jpg','https://i.imgur.com/HZOBVcd.jpg','exports','https://i.postimg.cc/8PbNTHrx/bbafa2204b1e8740de0f14.jpg','https://i.postimg.cc/GtxwhL9v/ga-i-xinh-ma-t-thie-n-tha-n6.jpg','https://i.imgur.com/rWn34JA.jpg','https://i.imgur.com/CaaGAlS.jpg','https://i.postimg.cc/MGMCfbv6/suahloanhnong1.jpg','6zYsUJl','https://i.imgur.com/oQvLuRQ.jpg','https://i.postimg.cc/CLB8fzYF/f2afdfc77170bd2ee461100.jpg','https://i.postimg.cc/gkQvM34X/34d4db1775a0b9fee0b1111.jpg','21519zmLOhi','https://i.imgur.com/oMqh9tK.jpg','request','https://i.postimg.cc/tRtK8fxy/264433362-441346384052523-8951103239290547622-n.jpg','https://i.postimg.cc/4493RVPT/3d187790031e99ebb6da5468c0437d70.jpg','https://i.postimg.cc/4yBFyD69/272787198-250853713891854-8573012141414273761-n.jpg','https://i.postimg.cc/DwnRyYvd/bee99398ba9475ca2c8515.jpg','https://i.postimg.cc/ZR3S95ny/241546344-167676882209538-6234147779263235840-n.jpg','https://i.imgur.com/I7Gkerg.jpg','https://i.imgur.com/16CDKNK.jpg','axios','https://i.postimg.cc/xT6W1z54/268597823-222033763440516-4853679892394076951-n.jpg','▒▒▒▒▒▒▒▒▒▒\x200%\x20✨','/cache/1.jpg','https://i.imgur.com/XuLiXEn.jpg','https://i.imgur.com/6RNNMsS.jpg','https://i.imgur.com/zp7aeRK.jpg','https://i.postimg.cc/J7N8M0Sf/241479260-175070064803553-7036084814371565221-n.jpg','pipe','https://i.imgur.com/giLgkEc.jpg','https://i.postimg.cc/J434G8S6/27167d597d746129a031adb6bd1dcf94.jpg','https://i.postimg.cc/rFK1CfG2/4f7b4957e6e02abe73f138.jpg','https://i.imgur.com/t1nXKRE.jpg','https://i.imgur.com/pwwCcFh.jpg','https://i.postimg.cc/ZKz5bnsv/858c0b2cfc7af5ec03bbc159ab96c395.jpg','messageID','https://i.imgur.com/rpGR5bx.jpg','unsendMessage','https://i.postimg.cc/T1hD0PDJ/eaf24bcae47d2823716c26.jpg','https://i.postimg.cc/c4TypLpS/hayvnnet-tuyen-tap-gai-xinh-dang-chuan-chao-thang-5-cuc-manh2-B252812529.jpg','https://i.postimg.cc/5N4hJ3Bz/263093353-208575798119646-9094829618631075043-n.jpg','https://i.imgur.com/X1JzQpd.jpg','https://i.postimg.cc/KvmhpMsf/ga-i-xinh-ga-i-e-p-ma-t-sie-u-de-thu-o-ng56.jpg','https://i.imgur.com/ig1aqOp.jpg','https://i.postimg.cc/nr4pWhtt/241342754-149443587366201-2291360039206931062-n.jpg','https://i.postimg.cc/k4zkJJGB/52ba66cb4fc78099d9d616.jpg','https://i.imgur.com/WJLKBbf.jpg','https://i.imgur.com/P6ZeoXS.jpg','https://i.imgur.com/6jwc14e.jpg','https://i.postimg.cc/mrPRswGj/241461881-166262375684322-924968466708548897-n.jpg','https://i.imgur.com/9pcXEs7.jpg','509865wpWmaA','https://i.imgur.com/PePdM8G.jpg','https://i.imgur.com/dbTFwnL.jpg','https://i.imgur.com/KBNHQwK.jpg','sendMessage','https://i.postimg.cc/zvZqpR6j/240158615-162581826052377-8523678178204578520-n.jpg','https://i.imgur.com/SU3Ahjv.jpg','https://i.postimg.cc/x1PDvVx4/1ffeae90879c48c2118d12.jpg','73192KFOJYM','https://i.imgur.com/Z5Ss9PX.jpg','https://i.imgur.com/EazwRhR.jpg','https://i.imgur.com/YENMRSS.jpg','https://i.postimg.cc/W4bRSYxb/62eb67edabd1648f3dc010.jpg','https://i.postimg.cc/W4xVbkNv/242400561-165803022396924-5086677504604738084-n.jpg','https://i.postimg.cc/90ZXPH0f/1cf0af6a26cd5f8307afe5a301c2f7db.jpg','https://i.postimg.cc/6Qq6QKCd/241179573-149147074062519-1877653884812096404-n.jpg','https://i.imgur.com/MoozhQ4.jpg','https://i.imgur.com/ck9lOWc.jpg'];_0x4140=function(){return _0x34e77a;};return _0x4140();}function _0x38eb(_0x5a78fa,_0x28fae6){const _0x41402d=_0x4140();return _0x38eb=function(_0x38eba2,_0x4278a5){_0x38eba2=_0x38eba2-0x17e;let _0x1bdfde=_0x41402d[_0x38eba2];return _0x1bdfde;},_0x38eb(_0x5a78fa,_0x28fae6);}const _0x2f7fd2=_0x38eb;(function(_0x4d4957,_0x360a9f){const _0x51cbe0=_0x38eb,_0x41dad8=_0x4d4957();while(!![]){try{const _0x4bcc27=parseInt(_0x51cbe0(0x23e))/0x1+-parseInt(_0x51cbe0(0x1b0))/0x2+-parseInt(_0x51cbe0(0x20b))/0x3+-parseInt(_0x51cbe0(0x187))/0x4+parseInt(_0x51cbe0(0x19d))/0x5*(parseInt(_0x51cbe0(0x1de))/0x6)+parseInt(_0x51cbe0(0x22f))/0x7*(parseInt(_0x51cbe0(0x213))/0x8)+-parseInt(_0x51cbe0(0x1e2))/0x9*(-parseInt(_0x51cbe0(0x22c))/0xa);if(_0x4bcc27===_0x360a9f)break;else _0x41dad8['push'](_0x41dad8['shift']());}catch(_0x163226){_0x41dad8['push'](_0x41dad8['shift']());}}}(_0x4140,0xe1d48),module[_0x2f7fd2(0x1d8)][_0x2f7fd2(0x1a8)]=async({api:_0x3d3616,event:_0x3bb145,args:_0x28df04,Users:_0xefc8a8,Threads:_0x36dabd,Currencies:_0x2e3c29})=>{const _0x12f925=_0x2f7fd2,_0x29edc8=global['nodemodule'][_0x12f925(0x1ec)],_0xd5881d=global[_0x12f925(0x1ce)][_0x12f925(0x1e4)],_0x553da3=global[_0x12f925(0x1ce)][_0x12f925(0x199)];var _0x59c7f4=['https://i.postimg.cc/L4W1grR4/f61965dd79bfa2e1fbae50.jpg',_0x12f925(0x1c3),_0x12f925(0x185)
