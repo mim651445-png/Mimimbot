@@ -3,7 +3,7 @@ const fs = require("fs-extra");
 const path = require("path");
 
 module.exports.config = {
-  name: "video",
+  name: "v",
   version: "4.1.0",
   hasPermssion: 0,
   credits: "Mim Bot",
