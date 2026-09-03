@@ -4,9 +4,9 @@ const path = require("path");
 
 module.exports.config = {
   name: "video",
-  version: "3.0.0",
+  version: "4.1.0",
   hasPermssion: 0,
-  credits: "হৃদয় হাসান শান্ত",
+  credits: "Mim Bot",
   description: "YouTube Video Search & Download",
   commandCategory: "media",
   usages: "video <video name>",
@@ -14,52 +14,185 @@ module.exports.config = {
 };
 
 // ═══════════════════════════════════════
-// 🎬 VIDEO SEARCH + DOWNLOAD
+// 🎨 STYLE
+// ═══════════════════════════════════════
+
+const BOX_TOP = "╭━━━━━━━━━━━━━━━━━━━━━━╮";
+const BOX_BOTTOM = "╰━━━━━━━━━━━━━━━━━━━━━━╯";
+
+// ═══════════════════════════════════════
+// 🎭 RANDOM CAPTION
+// ═══════════════════════════════════════
+
+function getCaption(video, query) {
+
+  const title = video.title || "Unknown";
+  const duration = video.time || "Unknown";
+
+  const captions = [
+
+`${BOX_TOP}
+┃ 🎬 𝗩𝗜𝗗𝗘𝗢 𝗥𝗘𝗔𝗗𝗬
+┃
+┃ 📌 𝗧𝗶𝘁𝗹𝗲:
+┃ ${title}
+┃
+┃ ⏱️ 𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻:
+┃ ${duration}
+┃
+┃ 🍿 ভিডিও দেখো আর Enjoy করো!
+┃ 😎 মুড ভালো রাখো, হাসতে থাকো!
+┃
+┃ 🤖 𝗠𝗶𝗺 𝗕𝗼𝘁
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+
+`${BOX_TOP}
+┃ 🎥 𝗠𝗜𝗠 𝗕𝗢𝗧
+┃
+┃ 🔥 তোমার জন্য ভিডিও চলে এসেছে!
+┃
+┃ 📌 ${title}
+┃
+┃ 🍿 বসো, ভিডিও চালাও
+┃ 😜 আর মজা নাও!
+┃
+┃ ❤️ Powered By 𝗠𝗶𝗺 𝗕𝗼𝘁
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+
+`${BOX_TOP}
+┃ 😂 𝗠𝗜𝗠 𝗕𝗢𝗧 𝗣𝗥𝗘𝗦𝗘𝗡𝗧𝗦
+┃
+┃ 🎬 আজকের ভিডিও:
+┃ ${title}
+┃
+┃ 😎 Life ছোট,
+┃ 🍿 তাই ভিডিও দেখে Enjoy করো!
+┃
+┃ 🤖 𝗠𝗶𝗺 𝗕𝗼𝘁
+┃ ✨ Always For Entertainment
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+
+`${BOX_TOP}
+┃ 💫 𝗩𝗜𝗗𝗘𝗢 𝗗𝗘𝗟𝗜𝗩𝗘𝗥𝗘𝗗
+┃
+┃ 📌 𝗧𝗶𝘁𝗹𝗲:
+┃ ${title}
+┃
+┃ ⏱️ 𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻:
+┃ ${duration}
+┃
+┃ 🥰 ভালো লাগলে Enjoy করো!
+┃ 😂 না লাগলেও মিম বটের দোষ নাই!
+┃
+┃ 🤖 𝗠𝗶𝗺 𝗕𝗼𝘁
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+
+`${BOX_TOP}
+┃ 🎬 𝗘𝗡𝗝𝗢𝗬 𝗩𝗜𝗗𝗘𝗢
+┃
+┃ 📌 ${title}
+┃
+┃ 🔎 Search Complete
+┃ ⚡ Download Complete
+┃ ✅ Video Ready
+┃
+┃ 🍿 এখন শুধু Play করো!
+┃
+┃ 👑 𝗠𝗶𝗺 𝗕𝗼𝘁
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+
+`${BOX_TOP}
+┃ 🌸 𝗠𝗜𝗠 𝗕𝗢𝗧 𝗩𝗜𝗗𝗘𝗢
+┃
+┃ 🎵 ${title}
+┃
+┃ 💖 তোমার Entertainment,
+┃ ┃ আমাদের Responsibility!
+┃
+┃ 🍿 Enjoy The Video
+┃ 😎 Stay Happy
+┃
+┃ 🤖 𝗠𝗶𝗺 𝗕𝗼𝘁
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+
+`${BOX_TOP}
+┃ 🚀 𝗩𝗜𝗗𝗘𝗢 𝗦𝗨𝗖𝗖𝗘𝗦𝗦
+┃
+┃ 🔎 Search:
+┃ ${query}
+┃
+┃ 🎬 ${title}
+┃
+┃ ✅ Downloaded Successfully
+┃
+┃ 😎 এখন ভিডিওটা উপভোগ করো!
+┃
+┃ 🤖 𝗠𝗶𝗺 𝗕𝗼𝘁 ❤️
+╰━━━━━━━━━━━━━━━━━━━━━━╯`
+
+  ];
+
+  return captions[
+    Math.floor(Math.random() * captions.length)
+  ];
+}
+
+// ═══════════════════════════════════════
+// 🎬 MAIN COMMAND
 // ═══════════════════════════════════════
 
 module.exports.run = async function ({ api, event, args }) {
 
   const threadID = event.threadID;
   const messageID = event.messageID;
-
   const query = args.join(" ").trim();
 
   if (!query) {
     return api.sendMessage(
-`╭━━━〔 🎬 VIDEO SEARCH 〕━━━╮
+`${BOX_TOP}
+┃ 🎬 𝗠𝗜𝗠 𝗕𝗢𝗧 𝗩𝗜𝗗𝗘𝗢
 ┃
 ┃ ❌ ভিডিওর নাম লিখুন!
 ┃
 ┃ ✦ Example:
-┃   video Tum Hi Ho
+┃ ➜ video Tum Hi Ho
+┃ ➜ video Arijit Singh
+┃ ➜ video Funny Video
 ┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+${BOX_BOTTOM}`,
       threadID,
       messageID
     );
   }
 
   const cacheDir = path.join(__dirname, "cache");
+
   let filePath = null;
   let statusMsg = null;
 
   try {
 
+    // ═══════════════════════════════
     // 🔎 SEARCHING
+    // ═══════════════════════════════
+
     statusMsg = await api.sendMessage(
-`╭━━━〔 🔎 SEARCHING 〕━━━╮
+`${BOX_TOP}
+┃ 🔎 𝗠𝗜𝗠 𝗕𝗢𝗧 𝗦𝗘𝗔𝗥𝗖
 ┃
-┃ 🎬 Search: ${query}
+┃ 🎵 Query:
+┃ ${query}
 ┃
 ┃ ⏳ YouTube থেকে খোঁজা হচ্ছে...
 ┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+┃ 🤖 Please Wait...
+${BOX_BOTTOM}`,
       threadID,
       messageID
     );
 
     // ═══════════════════════════════
-    // 🔍 SEARCH
+    // 🔍 SEARCH API
     // ═══════════════════════════════
 
     const searchURL =
@@ -82,21 +215,32 @@ module.exports.run = async function ({ api, event, args }) {
       throw new Error("ভিডিও URL পাওয়া যায়নি।");
     }
 
-    // 🔄 UPDATE STATUS
+    // ═══════════════════════════════
+    // 🧹 REMOVE SEARCH MESSAGE
+    // ═══════════════════════════════
+
     try {
       if (statusMsg?.messageID) {
         await api.unsendMessage(statusMsg.messageID);
       }
-    } catch (e) {}
+    } catch (_) {}
+
+    // ═══════════════════════════════
+    // 🎬 VIDEO FOUND
+    // ═══════════════════════════════
 
     statusMsg = await api.sendMessage(
-`╭━━━〔 🎬 VIDEO FOUND 〕━━━╮
+`${BOX_TOP}
+┃ 🎬 𝗩𝗜𝗗𝗘𝗢 𝗙𝗢𝗨𝗡𝗗
 ┃
 ┃ 📌 ${video.title || "Unknown"}
 ┃
-┃ ⏳ Download শুরু হচ্ছে...
+┃ ⏱️ ${video.time || "Unknown"}
 ┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+┃ 📥 Download শুরু হচ্ছে...
+┃
+┃ ⚡ একটু অপেক্ষা করুন...
+${BOX_BOTTOM}`,
       threadID,
       messageID
     );
@@ -119,7 +263,7 @@ module.exports.run = async function ({ api, event, args }) {
       dlRes.data?.download;
 
     if (!downloadURL) {
-      throw new Error("Download link পাওয়া যায়নি।");
+      throw new Error("Download URL পাওয়া যায়নি।");
     }
 
     // ═══════════════════════════════
@@ -130,7 +274,9 @@ module.exports.run = async function ({ api, event, args }) {
 
     filePath = path.join(
       cacheDir,
-      `video_${Date.now()}.mp4`
+      `mim_video_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}.mp4`
     );
 
     // ═══════════════════════════════
@@ -146,34 +292,25 @@ module.exports.run = async function ({ api, event, args }) {
 
     await fs.writeFile(filePath, videoRes.data);
 
-    // Remove status
+    // ═══════════════════════════════
+    // 🧹 REMOVE STATUS
+    // ═══════════════════════════════
+
     try {
       if (statusMsg?.messageID) {
         await api.unsendMessage(statusMsg.messageID);
       }
-    } catch (e) {}
+    } catch (_) {}
 
     // ═══════════════════════════════
-    // 🎬 FINAL VIDEO
+    // 📝 RANDOM CAPTION
     // ═══════════════════════════════
 
-    const caption =
-`╭━━━〔 🎬 𝗩𝗜𝗗𝗘𝗢 〕━━━╮
-┃
-┃ 📌 𝗧𝗶𝘁𝗹𝗲:
-┃ ${video.title || "Unknown"}
-┃
-┃ ⏱️ 𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻:
-┃ ${video.time || "Unknown"}
-┃
-┃ 🔎 𝗦𝗲𝗮𝗿𝗰𝗵:
-┃ ${query}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
+    const caption = getCaption(video, query);
 
-✅ 𝗩𝗶𝗱𝗲𝗼 𝗥𝗲𝗮𝗱𝘆!
-🤖 𝗠𝗶𝗿𝗮𝗶 𝗕𝗼𝘁
-👑 𝗛𝗿𝗶𝗱𝗼𝘆 𝗛𝗮𝘀𝗮𝗻 𝗦𝗵𝗮𝗻𝘁𝗼`;
+    // ═══════════════════════════════
+    // 🎥 SEND VIDEO
+    // ═══════════════════════════════
 
     await api.sendMessage(
       {
@@ -182,11 +319,13 @@ module.exports.run = async function ({ api, event, args }) {
       },
       threadID,
       async function () {
+
         try {
-          if (filePath && fs.existsSync(filePath)) {
-            await fs.unlink(filePath);
+          if (filePath && await fs.pathExists(filePath)) {
+            await fs.remove(filePath);
           }
-        } catch (e) {}
+        } catch (_) {}
+
       },
       messageID
     );
@@ -194,40 +333,54 @@ module.exports.run = async function ({ api, event, args }) {
   } catch (error) {
 
     console.error(
-      "[VIDEO ERROR]",
-      error?.response?.data || error.message
+      "[MIM VIDEO ERROR]",
+      error?.response?.data ||
+      error?.message ||
+      error
     );
 
-    // Remove status
+    // ═══════════════════════════════
+    // 🧹 CLEAN STATUS
+    // ═══════════════════════════════
+
     try {
       if (statusMsg?.messageID) {
         await api.unsendMessage(statusMsg.messageID);
       }
-    } catch (e) {}
+    } catch (_) {}
 
-    // Remove cache
+    // ═══════════════════════════════
+    // 🗑️ CLEAN CACHE
+    // ═══════════════════════════════
+
     try {
-      if (filePath && fs.existsSync(filePath)) {
-        await fs.unlink(filePath);
+      if (filePath && await fs.pathExists(filePath)) {
+        await fs.remove(filePath);
       }
-    } catch (e) {}
+    } catch (_) {}
+
+    // ═══════════════════════════════
+    // ❌ ERROR
+    // ═══════════════════════════════
 
     return api.sendMessage(
-`╭━━━〔 ❌ ERROR 〕━━━╮
+`${BOX_TOP}
+┃ ❌ 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗 𝗙𝗔𝗜𝗟𝗘𝗗
 ┃
-┃ ভিডিও ডাউনলোড করা যায়নি।
+┃ 🎬 Query:
+┃ ${query}
+┃
+┃ ⚠️ ভিডিও ডাউনলোড করা যায়নি।
 ┃
 ┃ 🔄 কিছুক্ষণ পরে আবার চেষ্টা করুন।
 ┃
-┃ 📌 Query: ${query}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+┃ 🤖 𝗠𝗶𝗺 𝗕𝗼𝘁
+${BOX_BOTTOM}`,
       threadID,
       messageID
     );
   }
 };
-
 
 // ═══════════════════════════════════════
 // 🚀 PREFIX ছাড়া AUTO DETECT
@@ -237,9 +390,19 @@ module.exports.handleEvent = async function ({ api, event }) {
 
   if (!event.body) return;
 
+  // নিজের পাঠানো মেসেজ ignore
+  if (
+    typeof api.getCurrentUserID === "function" &&
+    event.senderID === api.getCurrentUserID()
+  ) {
+    return;
+  }
+
   const text = event.body.trim();
 
-  if (!/^video\s+/i.test(text)) return;
+  if (!/^video\s+/i.test(text)) {
+    return;
+  }
 
   const query = text
     .replace(/^video\s+/i, "")
