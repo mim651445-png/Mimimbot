@@ -1,127 +1,255 @@
 const axios = require("axios");
-const yts = require("yt-search");
+const fs = require("fs-extra");
+const path = require("path");
 
-// ===== Base API =====
-async function baseApiUrl() {
-  const res = await axios.get(
-    "https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json"
-  );
-  return res.data.api;
-}
-
-// ===== Get Stream =====
-async function getStreamFromURL(url, fileName) {
-  const res = await axios.get(url, { responseType: "stream" });
-  res.data.path = fileName;
-  return res.data;
-}
-
-// ===== Get YouTube ID =====
-function getVideoID(url) {
-  const reg =
-    /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))((\w|-){11})/;
-  const match = url.match(reg);
-  return match ? match[1] : null;
-}
-
-// ===== CONFIG =====
 module.exports.config = {
   name: "video",
-  version: "1.0.0",
+  version: "3.0.0",
   hasPermssion: 0,
-  credits: "Mesbah Saxx | Mirai Convert",
-  description: "Download YouTube video",
+  credits: "হৃদয় হাসান শান্ত",
+  description: "YouTube Video Search & Download",
   commandCategory: "media",
-  usages: "video <name/url>",
+  usages: "video <video name>",
   cooldowns: 5
 };
 
-// ===== RUN =====
+// ═══════════════════════════════════════
+// 🎬 VIDEO SEARCH + DOWNLOAD
+// ═══════════════════════════════════════
+
 module.exports.run = async function ({ api, event, args }) {
-  let loadingMsg;
 
-  try {
-    if (!args[0])
-      return api.sendMessage(
-        "❌ Video name or YouTube link dao.",
-        event.threadID,
-        event.messageID
-      );
+  const threadID = event.threadID;
+  const messageID = event.messageID;
 
-    // load api
-    const API = await baseApiUrl();
+  const query = args.join(" ").trim();
 
-    let videoID;
-    const input = args[0];
-
-    // ===== URL MODE =====
-    if (input.includes("youtube.com") || input.includes("youtu.be")) {
-      videoID = getVideoID(input);
-      if (!videoID)
-        return api.sendMessage(
-          "❌ Invalid YouTube URL.",
-          event.threadID,
-          event.messageID
-        );
-    }
-
-    // ===== SEARCH MODE =====
-    else {
-      const searchQuery = args.join(" ");
-      loadingMsg = await api.sendMessage(
-        `🔎 Searching "${searchQuery}"...`,
-        event.threadID
-      );
-
-      const result = await yts(searchQuery);
-      if (!result.videos.length)
-        return api.sendMessage("❌ No video found.", event.threadID);
-
-      const randomVideo =
-        result.videos[Math.floor(Math.random() * result.videos.length)];
-
-      videoID = randomVideo.videoId;
-    }
-
-    // ===== API DOWNLOAD =====
-    const { data } = await axios.get(
-      `${API}/ytDl3?link=${videoID}&format=mp4`
-    );
-
-    if (loadingMsg) api.unsendMessage(loadingMsg.messageID);
-
-    const { title, quality, downloadLink } = data;
-
-    // ===== SHORT LINK =====
-    const shortLink = (
-      await axios.get(
-        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(
-          downloadLink
-        )}`
-      )
-    ).data;
-
-    // ===== SEND VIDEO =====
+  if (!query) {
     return api.sendMessage(
-      {
-        body:
-`🔖 Title: ${title}
-✨ Quality: ${quality}
-
-📥 Download Link: ${shortLink}`,
-        attachment: await getStreamFromURL(
-          downloadLink,
-          title.replace(/[\/\\:*?"<>|]/g, "") + ".mp4"
-        )
-      },
-      event.threadID,
-      event.messageID
-    );
-  } catch (err) {
-    api.sendMessage(
-      "❌ Error: " + (err.message || "Download failed."),
-      event.threadID,
-      event.messageID
+`╭━━━〔 🎬 VIDEO SEARCH 〕━━━╮
+┃
+┃ ❌ ভিডিওর নাম লিখুন!
+┃
+┃ ✦ Example:
+┃   video Tum Hi Ho
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+      threadID,
+      messageID
     );
   }
+
+  const cacheDir = path.join(__dirname, "cache");
+  let filePath = null;
+  let statusMsg = null;
+
+  try {
+
+    // 🔎 SEARCHING
+    statusMsg = await api.sendMessage(
+`╭━━━〔 🔎 SEARCHING 〕━━━╮
+┃
+┃ 🎬 Search: ${query}
+┃
+┃ ⏳ YouTube থেকে খোঁজা হচ্ছে...
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+      threadID,
+      messageID
+    );
+
+    // ═══════════════════════════════
+    // 🔍 SEARCH
+    // ═══════════════════════════════
+
+    const searchURL =
+      "https://betadash-search-download.vercel.app/yt?search=" +
+      encodeURIComponent(query);
+
+    const searchRes = await axios.get(searchURL, {
+      timeout: 30000
+    });
+
+    const results = searchRes.data;
+
+    if (!Array.isArray(results) || !results.length) {
+      throw new Error("কোনো ভিডিও পাওয়া যায়নি।");
+    }
+
+    const video = results[0];
+
+    if (!video || !video.url) {
+      throw new Error("ভিডিও URL পাওয়া যায়নি।");
+    }
+
+    // 🔄 UPDATE STATUS
+    try {
+      if (statusMsg?.messageID) {
+        await api.unsendMessage(statusMsg.messageID);
+      }
+    } catch (e) {}
+
+    statusMsg = await api.sendMessage(
+`╭━━━〔 🎬 VIDEO FOUND 〕━━━╮
+┃
+┃ 📌 ${video.title || "Unknown"}
+┃
+┃ ⏳ Download শুরু হচ্ছে...
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+      threadID,
+      messageID
+    );
+
+    // ═══════════════════════════════
+    // 📥 DOWNLOAD API
+    // ═══════════════════════════════
+
+    const downloadAPI =
+      "https://yt-api-imran.vercel.app/api?url=" +
+      encodeURIComponent(video.url);
+
+    const dlRes = await axios.get(downloadAPI, {
+      timeout: 60000
+    });
+
+    const downloadURL =
+      dlRes.data?.downloadUrl ||
+      dlRes.data?.url ||
+      dlRes.data?.download;
+
+    if (!downloadURL) {
+      throw new Error("Download link পাওয়া যায়নি।");
+    }
+
+    // ═══════════════════════════════
+    // 📁 CACHE
+    // ═══════════════════════════════
+
+    await fs.ensureDir(cacheDir);
+
+    filePath = path.join(
+      cacheDir,
+      `video_${Date.now()}.mp4`
+    );
+
+    // ═══════════════════════════════
+    // ⬇️ DOWNLOAD VIDEO
+    // ═══════════════════════════════
+
+    const videoRes = await axios.get(downloadURL, {
+      responseType: "arraybuffer",
+      timeout: 180000,
+      maxContentLength: 100 * 1024 * 1024,
+      maxBodyLength: 100 * 1024 * 1024
+    });
+
+    await fs.writeFile(filePath, videoRes.data);
+
+    // Remove status
+    try {
+      if (statusMsg?.messageID) {
+        await api.unsendMessage(statusMsg.messageID);
+      }
+    } catch (e) {}
+
+    // ═══════════════════════════════
+    // 🎬 FINAL VIDEO
+    // ═══════════════════════════════
+
+    const caption =
+`╭━━━〔 🎬 𝗩𝗜𝗗𝗘𝗢 〕━━━╮
+┃
+┃ 📌 𝗧𝗶𝘁𝗹𝗲:
+┃ ${video.title || "Unknown"}
+┃
+┃ ⏱️ 𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻:
+┃ ${video.time || "Unknown"}
+┃
+┃ 🔎 𝗦𝗲𝗮𝗿𝗰𝗵:
+┃ ${query}
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯
+
+✅ 𝗩𝗶𝗱𝗲𝗼 𝗥𝗲𝗮𝗱𝘆!
+🤖 𝗠𝗶𝗿𝗮𝗶 𝗕𝗼𝘁
+👑 𝗛𝗿𝗶𝗱𝗼𝘆 𝗛𝗮𝘀𝗮𝗻 𝗦𝗵𝗮𝗻𝘁𝗼`;
+
+    await api.sendMessage(
+      {
+        body: caption,
+        attachment: fs.createReadStream(filePath)
+      },
+      threadID,
+      async function () {
+        try {
+          if (filePath && fs.existsSync(filePath)) {
+            await fs.unlink(filePath);
+          }
+        } catch (e) {}
+      },
+      messageID
+    );
+
+  } catch (error) {
+
+    console.error(
+      "[VIDEO ERROR]",
+      error?.response?.data || error.message
+    );
+
+    // Remove status
+    try {
+      if (statusMsg?.messageID) {
+        await api.unsendMessage(statusMsg.messageID);
+      }
+    } catch (e) {}
+
+    // Remove cache
+    try {
+      if (filePath && fs.existsSync(filePath)) {
+        await fs.unlink(filePath);
+      }
+    } catch (e) {}
+
+    return api.sendMessage(
+`╭━━━〔 ❌ ERROR 〕━━━╮
+┃
+┃ ভিডিও ডাউনলোড করা যায়নি।
+┃
+┃ 🔄 কিছুক্ষণ পরে আবার চেষ্টা করুন।
+┃
+┃ 📌 Query: ${query}
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯`,
+      threadID,
+      messageID
+    );
+  }
+};
+
+
+// ═══════════════════════════════════════
+// 🚀 PREFIX ছাড়া AUTO DETECT
+// ═══════════════════════════════════════
+
+module.exports.handleEvent = async function ({ api, event }) {
+
+  if (!event.body) return;
+
+  const text = event.body.trim();
+
+  if (!/^video\s+/i.test(text)) return;
+
+  const query = text
+    .replace(/^video\s+/i, "")
+    .trim();
+
+  if (!query) return;
+
+  return module.exports.run({
+    api,
+    event,
+    args: query.split(/\s+/)
+  });
 };
