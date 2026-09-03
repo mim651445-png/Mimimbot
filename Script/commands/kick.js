@@ -1,293 +1,510 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 module.exports.config = {
-	name: "kick",
-	version: "2.0.0",
-	hasPermssion: 2,
-	credits: "🔰𝗥𝗮𝗵𝗮𝘁_𝗜𝘀𝗹𝗮𝗺🔰",
-	description: "Remove a tagged person from the group or view kick list",
-	commandCategory: "System",
-	usages: "[@mention/reply/UID/link/name/list]",
-	cooldowns: 0,
+  name: "kick",
+  version: "3.0.0",
+  hasPermssion: 0,
+  credits: "হৃদয় হাসান শান্ত",
+  description: "Group member remove system with kick history",
+  commandCategory: "System",
+  usages: "kick @mention | reply | UID | profile link | list",
+  cooldowns: 3
 };
 
-// ===== Helper: Full Name Mention Detection =====
-async function getUIDByFullName(api, threadID, body) {
-	if (!body.includes("@")) return null;
-	const match = body.match(/@(.+)/);
-	if (!match) return null;
-	const targetName = match[1].trim().toLowerCase().replace(/\s+/g, " ");
-	const threadInfo = await api.getThreadInfo(threadID);
-	const users = threadInfo.userInfo || [];
-	const user = users.find(u => {
-		if (!u.name) return false;
-		const fullName = u.name.trim().toLowerCase().replace(/\s+/g, " ");
-		return fullName === targetName;
-	});
-	return user ? user.id : null;
-}
+// ═══════════════════════════════════════
+// 📁 KICK DATA FILE
+// ═══════════════════════════════════════
 
-module.exports.languages = {
-	"en": {
-		"error": "Error! An error occurred. Please try again later!",
-		"needPermssion": "Need group admin\nPlease add and try again!",
-		"missingTag": "You need to tag someone to kick",
-		"kickListEmpty": "📭 Kick list is currently empty!",
-		"kickList": "📋 KICKED USERS LIST\n━━━━━━━━━━━━━━\n{list}\n━━━━━━━━━━━━━━\n👤 Total: {count} users",
-		"darkName": "🕶️ Darkname: {name}",
-		"addedToKickList": "✅ Kicked and added to list",
-		"userNotInGroup": "⚠️ This user is not in the group",
-		"cantKickSelf": "⚠️ You cannot kick yourself!",
-		"cantKickAdmin": "⚠️সরি আমি গ্রুপ এডমিনদের বের করতে পারবো না"
-	}
-};
+const DATA_FILE = path.join(__dirname, "kick_data.json");
 
-// 📁 অটোমেটিক JSON ফাইল তৈরি হবে
-const KICK_LIST_FILE = path.join(__dirname, 'kick_data.json');
-
-// 🎭 Darkname জেনারেটর
-const darkNames = [
-	"Shadow_Reaper", "Phantom_Slayer", "Ghost_Walker", "Void_Keeper",
-	"Abyss_Hunter", "Night_Stalker", "Dark_Bringer", "Spectre_Lord",
-	"Eclipse_Caster", "Wraith_Weaver", "Midnight_Phantom", "Dusk_Hunter",
-	"Twilight_Reaper", "Gloom_Walker", "Oblivion_Slayer"
-];
-
-function generateDarkName() {
-	return darkNames[Math.floor(Math.random() * darkNames.length)];
-}
-
-// 📄 JSON ফাইল ম্যানেজমেন্ট ফাংশন
-function ensureKickFile() {
-	if (!fs.existsSync(KICK_LIST_FILE)) {
-		fs.writeFileSync(KICK_LIST_FILE, JSON.stringify([], null, 2));
-	}
+function createDataFile() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.writeFileSync(DATA_FILE, "[]", "utf8");
+    }
+  } catch (err) {
+    console.error("❌ Cannot create kick_data.json:", err);
+  }
 }
 
 function readKickData() {
-	try {
-		ensureKickFile();
-		const data = fs.readFileSync(KICK_LIST_FILE, 'utf8');
-		return JSON.parse(data);
-	} catch (error) {
-		console.error("❌ Error reading kick data:", error);
-		return [];
-	}
+  try {
+    createDataFile();
+
+    const data = fs.readFileSync(DATA_FILE, "utf8").trim();
+
+    if (!data) return [];
+
+    const parsed = JSON.parse(data);
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("❌ Kick data read error:", err);
+    return [];
+  }
 }
 
 function saveKickData(data) {
-	try {
-		fs.writeFileSync(KICK_LIST_FILE, JSON.stringify(data, null, 2), 'utf8');
-		return true;
-	} catch (error) {
-		console.error("❌ Error saving kick data:", error);
-		return false;
-	}
+  try {
+    fs.writeFileSync(
+      DATA_FILE,
+      JSON.stringify(data, null, 2),
+      "utf8"
+    );
+    return true;
+  } catch (err) {
+    console.error("❌ Kick data save error:", err);
+    return false;
+  }
 }
 
-function addToKickList(userInfo) {
-	const kickData = readKickData();
-	
-	// ডুপ্লিকেট চেক
-	const exists = kickData.some(user => user.id === userInfo.id);
-	if (!exists) {
-		userInfo.darkName = generateDarkName();
-		userInfo.timestamp = new Date().toLocaleString();
-		kickData.push(userInfo);
-		saveKickData(kickData);
-		return userInfo.darkName;
-	}
-	return kickData.find(user => user.id === userInfo.id).darkName;
+// ═══════════════════════════════════════
+// 🎭 DARK NAME
+// ═══════════════════════════════════════
+
+const darkNames = [
+  "Shadow_Reaper",
+  "Phantom_Walker",
+  "Ghost_Rider",
+  "Dark_Hunter",
+  "Night_Stalker",
+  "Void_Keeper",
+  "Eclipse_Lord",
+  "Silent_Reaper",
+  "Midnight_Ghost",
+  "Black_Phantom",
+  "Dark_Knight",
+  "Storm_Reaper"
+];
+
+function generateDarkName() {
+  return darkNames[Math.floor(Math.random() * darkNames.length)];
 }
 
-// 📋 লিস্ট দেখানোর ফাংশন
+// ═══════════════════════════════════════
+// 💾 ADD TO KICK LIST
+// ═══════════════════════════════════════
+
+function addToKickList(info) {
+  const list = readKickData();
+
+  const exists = list.find(user => String(user.id) === String(info.id));
+
+  if (exists) {
+    return exists.darkName || "Unknown_Dark";
+  }
+
+  const newUser = {
+    id: info.id,
+    name: info.name || "Unknown User",
+    darkName: generateDarkName(),
+    kickedBy: info.kickedBy || "Unknown",
+    groupId: info.groupId || "Unknown",
+    groupName: info.groupName || "Unknown Group",
+    timestamp: new Date().toISOString()
+  };
+
+  list.push(newUser);
+  saveKickData(list);
+
+  return newUser.darkName;
+}
+
+// ═══════════════════════════════════════
+// 👤 GET USER NAME
+// ═══════════════════════════════════════
+
+async function getUserName(api, uid) {
+  try {
+    const info = await api.getUserInfo(uid);
+
+    if (info && info[uid] && info[uid].name) {
+      return info[uid].name;
+    }
+
+    return "Unknown User";
+  } catch (err) {
+    return "Unknown User";
+  }
+}
+
+// ═══════════════════════════════════════
+// 🎯 GET TARGET USERS
+// ═══════════════════════════════════════
+
+async function getTargets(api, event, args) {
+  const targets = [];
+  const mentions = event.mentions || {};
+
+  // ─────────────────────────────────────
+  // 📌 REPLY
+  // ─────────────────────────────────────
+
+  if (
+    event.type === "message_reply" &&
+    event.messageReply &&
+    event.messageReply.senderID
+  ) {
+    const uid = String(event.messageReply.senderID);
+
+    targets.push({
+      id: uid,
+      name: await getUserName(api, uid)
+    });
+
+    return targets;
+  }
+
+  // ─────────────────────────────────────
+  // 📌 MENTION
+  // ─────────────────────────────────────
+
+  const mentionIDs = Object.keys(mentions);
+
+  if (mentionIDs.length > 0) {
+    for (const uid of mentionIDs) {
+      targets.push({
+        id: String(uid),
+        name: mentions[uid] || await getUserName(api, uid)
+      });
+    }
+
+    return targets;
+  }
+
+  // ─────────────────────────────────────
+  // 📌 NO ARGUMENT
+  // ─────────────────────────────────────
+
+  if (!args || args.length === 0) {
+    return [];
+  }
+
+  // ─────────────────────────────────────
+  // 📋 LIST
+  // ─────────────────────────────────────
+
+  if (String(args[0]).toLowerCase() === "list") {
+    return "LIST";
+  }
+
+  const input = args.join(" ").trim();
+
+  // ─────────────────────────────────────
+  // 🔗 FACEBOOK LINK
+  // ─────────────────────────────────────
+
+  if (
+    input.includes("facebook.com/") ||
+    input.includes("fb.com/")
+  ) {
+    try {
+      const uid = await api.getUID(input);
+
+      if (uid) {
+        targets.push({
+          id: String(uid),
+          name: await getUserName(api, uid)
+        });
+      }
+    } catch (err) {
+      console.error("❌ UID link error:", err);
+    }
+
+    return targets;
+  }
+
+  // ─────────────────────────────────────
+  // 🆔 DIRECT UID
+  // ─────────────────────────────────────
+
+  if (/^\d+$/.test(input)) {
+    const uid = String(input);
+
+    targets.push({
+      id: uid,
+      name: await getUserName(api, uid)
+    });
+
+    return targets;
+  }
+
+  return [];
+}
+
+// ═══════════════════════════════════════
+// 📋 SHOW KICK LIST
+// ═══════════════════════════════════════
+
 async function showKickList(api, event) {
-	const kickData = readKickData();
-	
-	if (kickData.length === 0) {
-		return api.sendMessage("📭কোন কিক লিস্ট নাই🤷", event.threadID, event.messageID);
-	}
-	
-	let listMessage = "📋 𝐊𝐈𝐂𝐊𝐄𝐃 𝐔𝐒𝐄𝐑𝐒 𝐋𝐈𝐒𝐓\n━━━━━━━━━━━━━━━━━━\n";
-	
-	kickData.forEach((user, index) => {
-		listMessage += `${index + 1}. ${user.name}\n`;
-		listMessage += `🆔𝗨𝗜𝗗: ${user.id}\n`;
-		listMessage += `────────────────`;
-	});
-	
-	listMessage += `\n👤𝗧𝗼𝘁𝗮𝗹: ${kickData.length} users`;
-	
-	api.sendMessage(listMessage, event.threadID, event.messageID);
+  const list = readKickData();
+
+  if (list.length === 0) {
+    return api.sendMessage(
+      "╭━━━〔 📭 KICK LIST 〕━━━╮\n" +
+      "┃\n" +
+      "┃ ❌ এখনো কোনো ইউজার কিক করা হয়নি।\n" +
+      "┃\n" +
+      "╰━━━━━━━━━━━━━━━━━━━━╯",
+      event.threadID,
+      event.messageID
+    );
+  }
+
+  let msg =
+    "╭━━━〔 🔥 KICKED USERS 〕━━━╮\n\n";
+
+  list.forEach((user, index) => {
+    msg +=
+      `🆔 ${index + 1}. ${user.name}\n` +
+      `👤 UID: ${user.id}\n` +
+      `🌑 DarkName: ${user.darkName}\n` +
+      `━━━━━━━━━━━━━━━━━━\n`;
+  });
+
+  msg +=
+    `\n📊 Total Kicked: ${list.length}\n` +
+    "╰━━━━━━━━━━━━━━━━━━━━╯";
+
+  return api.sendMessage(
+    msg,
+    event.threadID,
+    event.messageID
+  );
 }
 
-// ===== Helper: Get Target User =====
-async function getTargetUsers(api, event, args) {
-	let targetIDs = [];
-	let userNames = {};
-	
-	// 📋 লিস্ট দেখানোর রিকুয়েস্ট
-	if (args[0]?.toLowerCase() === 'list') {
-		return { targetIDs: [], userNames: {}, action: 'list' };
-	}
-	
-	// ===== Determine targetID in three ways =====
-	if (event.type === "message_reply") {
-		// Way 1: Reply to a message
-		const uid = event.messageReply.senderID;
-		targetIDs = [uid];
-		try {
-			const userInfo = await api.getUserInfo(uid);
-			userNames[uid] = userInfo[uid]?.name || "Unknown User";
-		} catch (error) {
-			userNames[uid] = "Unknown User";
-		}
-	} else if (args[0]) {
-		if (args[0].indexOf(".com/") !== -1) {
-			// Way 2: Facebook profile link
-			const uid = await api.getUID(args[0]);
-			if (uid) {
-				targetIDs = [uid];
-				try {
-					const userInfo = await api.getUserInfo(uid);
-					userNames[uid] = userInfo[uid]?.name || "Unknown User";
-				} catch (error) {
-					userNames[uid] = "Unknown User";
-				}
-			}
-		} else if (args.join().includes("@")) {
-			// Way 3: Mention or full name
-			// 3a: Direct Facebook mention
-			const mentionKeys = Object.keys(event.mentions || {});
-			if (mentionKeys.length > 0) {
-				targetIDs = mentionKeys;
-				userNames = event.mentions;
-			} else {
-				// 3b: Full name detection
-				const uid = await getUIDByFullName(api, event.threadID, args.join(" "));
-				if (uid) {
-					targetIDs = [uid];
-					try {
-						const userInfo = await api.getUserInfo(uid);
-						userNames[uid] = userInfo[uid]?.name || "Unknown User";
-					} catch (error) {
-						userNames[uid] = "Unknown User";
-					}
-				}
-			}
-		} else {
-			// Direct UID
-			const uid = args[0];
-			targetIDs = [uid];
-			try {
-				const userInfo = await api.getUserInfo(uid);
-				userNames[uid] = userInfo[uid]?.name || "Unknown User";
-			} catch (error) {
-				userNames[uid] = "Unknown User";
-			}
-		}
-	} else if (Object.keys(event.mentions).length > 0) {
-		// Legacy mention support
-		targetIDs = Object.keys(event.mentions);
-		userNames = event.mentions;
-	}
-	
-	return { targetIDs, userNames, action: 'kick' };
-}
+// ═══════════════════════════════════════
+// 🚀 MAIN COMMAND
+// ═══════════════════════════════════════
 
-// 🎯 মূল রান ফাংশন
-module.exports.run = async function({ api, event, args, getText }) {
-	try {
-		// ===== Get target users using three-way detection =====
-		const { targetIDs, userNames, action } = await getTargetUsers(api, event, args);
-		
-		// 📋 লিস্ট দেখানোর রিকুয়েস্ট
-		if (action === 'list') {
-			return await showKickList(api, event);
-		}
-		
-		if (targetIDs.length === 0) {
-			const helpMessage = "❌বসকে ডাক দে🫩\nকীভাবে কমান্ড ব্যবহার করতে হয় শিখায় দিবো🥴";
-			
-			return api.sendMessage(helpMessage, event.threadID, event.messageID);
-		}
-		
-		// 🔍 গ্রুপ ইনফো চেক
-		let threadInfo = await api.getThreadInfo(event.threadID);
-		
-		if (!threadInfo || !threadInfo.adminIDs) {
-			return api.sendMessage("⚠️সরি আমি গ্রুপ এডমিনদের বের করতে পারবো না", event.threadID);
-		}
-		
-		// 🤖 বট অ্যাডমিন চেক
-		const botIsAdmin = threadInfo.adminIDs.some(admin => admin.id == api.getCurrentUserID());
-		if (!botIsAdmin) {
-			return api.sendMessage(getText("needPermssion"), event.threadID, event.messageID);
-		}
-		
-		// 👨‍💼 ইউজার অ্যাডমিন চেক
-		const userIsAdmin = threadInfo.adminIDs.some(admin => admin.id == event.senderID);
-		if (!userIsAdmin) {
-			return api.sendMessage("⚠️ You must be an admin to use this command!", event.threadID, event.messageID);
-		}
-		
-		for (const uid of targetIDs) {
-			// 🛡️ সিকিউরিটি চেক
-			if (uid === event.senderID) {
-				api.sendMessage(getText("cantKickSelf"), event.threadID);
-				continue;
-			}
-			
-			if (threadInfo.adminIDs.some(admin => admin.id == uid)) {
-				api.sendMessage(getText("cantKickAdmin"), event.threadID);
-				continue;
-			}
-			
-			const participants = threadInfo.participantIDs || threadInfo.userInfo?.map(u => u.id) || [];
-			if (!participants.includes(uid)) {
-				api.sendMessage(getText("userNotInGroup"), event.threadID);
-				continue;
-			}
-			
-			// 💾 ডাটা প্রিপেয়ার
-			const userName = userNames[uid] || "Unknown User";
-			const kickInfo = {
-				id: uid,
-				name: userName,
-				kickedBy: event.senderID,
-				groupId: event.threadID,
-				groupName: threadInfo.threadName || "Unknown Group"
-			};
-			
-			// ⏳ কিক প্রসেস
-			setTimeout(async () => {
-				try {
-					// 🚫 কিক অপারেশন
-					await api.removeUserFromGroup(uid, event.threadID);
-					
-					// 📝 লিস্টে অ্যাড
-					const darkName = addToKickList(kickInfo);
-					
-					// 📢 কনফার্মেশন মেসেজ
-					const successMsg = `✅ 𝐒𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥𝐥𝐲 𝐊𝐢𝐜𝐤𝐞𝐝!\n\n` +
-						`👤𝗨𝘀𝗲𝗿: ${userName}\n` +
-						`🆔𝗨𝗜𝗗: ${uid}`;
-					
-					api.sendMessage(successMsg, event.threadID);
-					
-				} catch (kickError) {
-					console.error("Kick error:", kickError);
-					api.sendMessage(`❌ Failed to kick: ${userName}`, event.threadID);
-				}
-			}, 1500);
-		}
-		
-	} catch (error) {
-		console.error("🚨 Command error:", error);
-		api.sendMessage(`❌ Error: ${error.message || getText("error")}`, event.threadID);
-	}
+module.exports.run = async function ({
+  api,
+  event,
+  args
+}) {
+  try {
+    createDataFile();
+
+    // ───────────────────────────────────
+    // 🎯 GET TARGET
+    // ───────────────────────────────────
+
+    const targets = await getTargets(api, event, args);
+
+    // 📋 LIST
+    if (targets === "LIST") {
+      return await showKickList(api, event);
+    }
+
+    // ❌ NO TARGET
+    if (!targets || targets.length === 0) {
+      return api.sendMessage(
+        "╭━━━〔 ⚠️ KICK HELP 〕━━━╮\n\n" +
+        "👉 কাউকে Kick করতে:\n\n" +
+        "🔹 @Mention করুন\n" +
+        "🔹 কারো মেসেজে Reply করুন\n" +
+        "🔹 UID দিন\n" +
+        "🔹 Facebook Profile Link দিন\n\n" +
+        "📋 Kick List দেখতে:\n" +
+        "👉 kick list\n\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯",
+        event.threadID,
+        event.messageID
+      );
+    }
+
+    // ───────────────────────────────────
+    // 👥 THREAD INFO
+    // ───────────────────────────────────
+
+    const threadInfo = await api.getThreadInfo(
+      event.threadID
+    );
+
+    if (!threadInfo) {
+      return api.sendMessage(
+        "❌ গ্রুপের তথ্য পাওয়া যাচ্ছে না।",
+        event.threadID,
+        event.messageID
+      );
+    }
+
+    const adminIDs = Array.isArray(threadInfo.adminIDs)
+      ? threadInfo.adminIDs.map(a => String(a.id))
+      : [];
+
+    // ───────────────────────────────────
+    // 🤖 BOT ADMIN CHECK
+    // ───────────────────────────────────
+
+    const botID = String(api.getCurrentUserID());
+
+    if (!adminIDs.includes(botID)) {
+      return api.sendMessage(
+        "╭━━━〔 🤖 BOT ADMIN 〕━━━╮\n\n" +
+        "❌ আমাকে আগে Group Admin করতে হবে!\n\n" +
+        "তারপর আবার Kick command ব্যবহার করুন।\n\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯",
+        event.threadID,
+        event.messageID
+      );
+    }
+
+    // ───────────────────────────────────
+    // 👑 USER ADMIN CHECK
+    // ───────────────────────────────────
+
+    const senderID = String(event.senderID);
+
+    if (!adminIDs.includes(senderID)) {
+      return api.sendMessage(
+        "╭━━━〔 🚫 ACCESS DENIED 〕━━━╮\n\n" +
+        "❌ শুধু Group Admin এই command ব্যবহার করতে পারবে!\n\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯",
+        event.threadID,
+        event.messageID
+      );
+    }
+
+    // ───────────────────────────────────
+    // 👥 PARTICIPANTS
+    // ───────────────────────────────────
+
+    const participants = Array.isArray(threadInfo.participantIDs)
+      ? threadInfo.participantIDs.map(String)
+      : [];
+
+    // ───────────────────────────────────
+    // 🔄 PROCESS TARGETS
+    // ───────────────────────────────────
+
+    let kicked = 0;
+    let failed = 0;
+
+    for (const target of targets) {
+      const uid = String(target.id);
+      const name = target.name || "Unknown User";
+
+      // 🛡️ SELF CHECK
+      if (uid === senderID) {
+        failed++;
+
+        await api.sendMessage(
+          `⚠️ ${name}\n\nনিজেকে Kick করা যাবে না! 😅`,
+          event.threadID
+        );
+
+        continue;
+      }
+
+      // 👑 ADMIN CHECK
+      if (adminIDs.includes(uid)) {
+        failed++;
+
+        await api.sendMessage(
+          `👑 ${name}\n\nসরি, Group Admin-কে Kick করা যাবে না!`,
+          event.threadID
+        );
+
+        continue;
+      }
+
+      // 👥 MEMBER CHECK
+      if (
+        participants.length > 0 &&
+        !participants.includes(uid)
+      ) {
+        failed++;
+
+        await api.sendMessage(
+          `⚠️ ${name}\n\nএই User বর্তমানে গ্রুপে নেই।`,
+          event.threadID
+        );
+
+        continue;
+      }
+
+      // ─────────────────────────────────
+      // 🚫 REMOVE USER
+      // ─────────────────────────────────
+
+      try {
+        await api.removeUserFromGroup(
+          uid,
+          event.threadID
+        );
+
+        // 💾 SAVE HISTORY
+        const darkName = addToKickList({
+          id: uid,
+          name: name,
+          kickedBy: senderID,
+          groupId: event.threadID,
+          groupName: threadInfo.threadName || "Unknown Group"
+        });
+
+        kicked++;
+
+        await api.sendMessage(
+          "╭━━━〔 ✅ KICK SUCCESS 〕━━━╮\n\n" +
+          `👤 User: ${name}\n` +
+          `🆔 UID: ${uid}\n` +
+          `🌑 DarkName: ${darkName}\n\n` +
+          "🚫 Group থেকে Remove করা হয়েছে।\n" +
+          "╰━━━━━━━━━━━━━━━━━━━━╯",
+          event.threadID
+        );
+
+      } catch (kickError) {
+        failed++;
+
+        console.error(
+          "❌ Remove User Error:",
+          kickError
+        );
+
+        await api.sendMessage(
+          `❌ ${name}-কে Kick করা যায়নি।\n\n` +
+          "সম্ভবত Bot-এর Admin Permission নেই অথবা API Error হয়েছে।",
+          event.threadID
+        );
+      }
+    }
+
+    // ───────────────────────────────────
+    // 📊 FINAL RESULT
+    // ───────────────────────────────────
+
+    if (targets.length > 1) {
+      await api.sendMessage(
+        "╭━━━〔 📊 KICK RESULT 〕━━━╮\n\n" +
+        `✅ Successful: ${kicked}\n` +
+        `❌ Failed: ${failed}\n\n` +
+        "╰━━━━━━━━━━━━━━━━━━━━╯",
+        event.threadID
+      );
+    }
+
+  } catch (error) {
+    console.error(
+      "🚨 KICK COMMAND ERROR:",
+      error
+    );
+
+    return api.sendMessage(
+      "╭━━━〔 ❌ ERROR 〕━━━╮\n\n" +
+      "কমান্ড চালানোর সময় একটি সমস্যা হয়েছে।\n\n" +
+      `🔧 ${error.message || "Unknown Error"}\n\n` +
+      "╰━━━━━━━━━━━━━━━━━━━━╯",
+      event.threadID,
+      event.messageID
+    );
+  }
 };
 
-// 📦 মডিউল শুরু হলে ফাইল তৈরি করা
-ensureKickFile();
+// ═══════════════════════════════════════
+// 📦 INITIALIZE
+// ═══════════════════════════════════════
+
+createDataFile();
