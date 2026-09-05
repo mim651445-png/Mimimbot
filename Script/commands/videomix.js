@@ -7,13 +7,13 @@ const path = require("path");
    ===================================================== */
 
 module.exports.config = {
-  name: "videomix",
+  name: "gan2",
   version: "12.0.0",
   hasPermssion: 0,
   credits: "হৃদয় হাসান শান্ত",
   description: "Random category video with stylish caption",
   commandCategory: "video",
-  usages: "videomix",
+  usages: "gan2",
   cooldowns: 10
 };
 
