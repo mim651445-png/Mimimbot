@@ -3,13 +3,13 @@ const fs = require("fs-extra");
 const path = require("path");
 
 module.exports.config = {
-  name: "🤫",
+  name: "b",
   version: "5.0.0",
   hasPermssion: 0,
   credits: "হৃদয় হাসান শান্ত",
   description: "🎬 Stylish Keyword Video Reply System",
   commandCategory: "media",
-  usages: "videos1 🤫",
+  usages: "videos1 b",
   cooldowns: 2
 };
 
@@ -20,7 +20,7 @@ module.exports.config = {
 
 const videoMap = {
 
-  "ডাইনি": {
+  "🧛‍♀️": {
     url: "https://files.catbox.moe/tfaki1.mp4",
     caption:
 `╭━━━〔 👻 𝐃𝐀𝐈𝐍𝐈 𝐀𝐋𝐄𝐑𝐓 👻 〕━━━╮
@@ -30,7 +30,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "হাসি": {
+  "🤣": {
     url: "https://files.catbox.moe/ovinjk.mp4",
     caption:
 `╭━━━〔 😂 𝐇𝐀𝐇𝐀 𝐌𝐎𝐃𝐄 🤣 〕━━━╮
@@ -40,7 +40,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "কট": {
+  "🐸": {
     url: "https://files.catbox.moe/wgyhso.mp4",
     caption:
 `╭━━━〔 🤨 𝐖𝐇𝐀𝐓?! 😵 〕━━━╮
@@ -50,7 +50,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "উম্ম": {
+  "😘": {
     url: "https://files.catbox.moe/l5xxyj.mp4",
     caption:
 `╭━━━〔 😚 𝐔𝐌𝐌 𝐌𝐎𝐃𝐄 💫 〕━━━╮
@@ -60,7 +60,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "সত্যি না": {
+  "🤷": {
     url: "https://files.catbox.moe/n9iqgv.mp4",
     caption:
 `╭━━━〔 🤨 𝐑𝐄𝐀𝐋𝐋𝐘?! 👀 〕━━━╮
@@ -100,7 +100,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "😆🤸": {
+  "😆": {
     url: "https://files.catbox.moe/hies6o.mp4",
     caption:
 `╭━━━〔 🤸 𝐅𝐔𝐍 𝐌𝐎𝐃𝐄 🎉 〕━━━╮
@@ -160,7 +160,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "লাভ": {
+  "🎀": {
     url: "https://files.catbox.moe/w48i3n.mp4",
     caption:
 `╭━━━〔 ❤️ 𝐋𝐎𝐕𝐄 𝐌𝐎𝐃𝐄 💕 〕━━━╮
@@ -170,7 +170,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "লাভ২": {
+  "❤️‍🩹": {
     url: "https://files.catbox.moe/0hqphz.mp4",
     caption:
 `╭━━━〔 💘 𝐋𝐎𝐕𝐄 𝐋𝐄𝐕𝐄𝐋 𝟐 🔥 〕━━━╮
@@ -180,7 +180,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "love12": {
+  "love": {
     url: "https://files.catbox.moe/1f6wdu.mp4",
     caption:
 `╭━━━〔 ❤️ 𝐋𝐎𝐕𝐄 𝐕𝐈𝐁𝐄𝐒 ✨ 〕━━━╮
@@ -190,7 +190,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "বউ রাব্বি": {
+  "🤦‍♂️": {
     url: "https://files.catbox.moe/pqdh0d.mp4",
     caption:
 `╭━━━〔 😂 𝐑𝐀𝐁𝐁𝐈 𝐌𝐎𝐃𝐄 🤣 〕━━━╮
@@ -200,7 +200,7 @@ const videoMap = {
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`
   },
 
-  "😲": {
+  "mim": {
     url: "https://files.catbox.moe/39b4ua.mp4",
     caption:
 `╭━━━〔 😲 𝐒𝐔𝐑𝐏𝐑𝐈𝐒𝐄 𝐌𝐎𝐃𝐄 😱 〕━━━╮
