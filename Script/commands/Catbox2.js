@@ -1,151 +1,378 @@
 const axios = require("axios");
-
-const getBase = async () => {
-  const res = await axios.get(
-    "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json",
-    { timeout: 15000 }
-  );
-
-  if (!res.data || !res.data.mahmud) {
-    throw new Error("Base API URL পাওয়া যায়নি");
-  }
-
-  return res.data.mahmud;
-};
+const fs = require("fs-extra");
+const FormData = require("form-data");
+const path = require("path");
+const os = require("os");
 
 module.exports = {
   config: {
-    name: "catbox2",
-    aliases: ["cb", "catbox"],
+    name: "n",
+    aliases: ["up", "upload", "cb"],
     version: "2.0.0",
     author: "হৃদয় হাসান শান্ত",
-    countDown: 10,
+    countDown: 5,
     role: 0,
 
-    description: {
-      bn: "ছবি/ভিডিও/মিডিয়া ফাইলকে Catbox লিংকে রূপান্তর করে",
-      en: "Convert image/video/media into a Catbox link"
+    shortDescription: {
+      en: "Upload media and get direct link"
+    },
+
+    longDescription: {
+      en: "Upload image, video, audio or GIF and get a direct link"
     },
 
     category: "tools",
 
     guide: {
-      bn: "{pn} — কোনো ছবি বা ভিডিওতে Reply করে ব্যবহার করুন",
-      en: "{pn} — Reply to an image or video"
+      en: "{pn} reply to an image, video, audio or GIF"
     }
   },
 
-  langs: {
-    bn: {
-      noMedia:
-        "╭━━━〔 ⚠️ CATBOX 〕━━━╮\n" +
-        "┃ 📸 একটি ছবি/ভিডিওতে\n" +
-        "┃ ↳ Reply করে আবার চেষ্টা করো!\n" +
-        "╰━━━━━━━━━━━━━━━━━━╯",
-
-      uploading:
-        "╭━━━〔 ⏳ UPLOADING 〕━━━╮\n" +
-        "┃ 📤 মিডিয়া আপলোড হচ্ছে...\n" +
-        "┃ একটু অপেক্ষা করো 🐱\n" +
-        "╰━━━━━━━━━━━━━━━━━━━━╯",
-
-      success:
-        "╭━━━〔 ✅ CATBOX LINK 〕━━━╮\n" +
-        "┃ 🔗 %1\n" +
-        "╰━━━━━━━━━━━━━━━━━━━━━━╯",
-
-      error:
-        "╭━━━〔 ❌ ERROR 〕━━━╮\n" +
-        "┃ %1\n" +
-        "╰━━━━━━━━━━━━━━━━━━╯"
-    }
-  },
-
-  onStart: async function ({ api, event, message, getLang }) {
-    // Reply attachment আছে কিনা চেক
-    if (
-      event.type !== "message_reply" ||
-      !event.messageReply ||
-      !event.messageReply.attachments ||
-      event.messageReply.attachments.length === 0
-    ) {
-      return message.reply(getLang("noMedia"));
-    }
+  onStart: async function ({ event, message, api }) {
+    let tempPath = null;
+    let loadingMsg = null;
 
     try {
-      // Loading reaction
+      // ==============================
+      // CHECK REPLIED ATTACHMENT
+      // ==============================
+
+      const reply = event.messageReply;
+
+      if (
+        !reply ||
+        !reply.attachments ||
+        !reply.attachments.length
+      ) {
+        return message.reply(
+          "⚠️ | Please reply to an image, video, audio or GIF."
+        );
+      }
+
+      const attachment = reply.attachments[0];
+
+      if (!attachment.url) {
+        return message.reply(
+          "❌ | Attachment URL পাওয়া যায়নি।"
+        );
+      }
+
+      // ==============================
+      // UPLOAD REACTION
+      // ==============================
+
       api.setMessageReaction(
-        "⏳",
+        "📤",
         event.messageID,
         () => {},
         true
       );
 
-      const attachment = event.messageReply.attachments[0];
+      loadingMsg = await message.reply(
+        "⏳ | Uploading your file...\n\n📤 Please wait..."
+      );
 
-      if (!attachment.url) {
-        throw new Error("মিডিয়া ফাইলের URL পাওয়া যায়নি");
+      // ==============================
+      // FILE EXTENSION
+      // ==============================
+
+      let ext = ".jpg";
+
+      switch (attachment.type) {
+        case "video":
+          ext = ".mp4";
+          break;
+
+        case "audio":
+          ext = ".mp3";
+          break;
+
+        case "animated_image":
+          ext = ".gif";
+          break;
+
+        case "photo":
+        case "image":
+          ext = ".jpg";
+          break;
+
+        default:
+          ext = ".bin";
       }
 
-      const attachmentUrl = attachment.url;
+      // ==============================
+      // TEMP FILE
+      // ==============================
 
-      // Upload message
-      await message.reply(getLang("uploading"));
+      tempPath = path.join(
+        os.tmpdir(),
+        `catbox_${Date.now()}${ext}`
+      );
 
-      // Base API
-      const baseUrl = await getBase();
+      // ==============================
+      // DOWNLOAD ATTACHMENT
+      // ==============================
 
-      // Catbox API request
       const response = await axios.get(
-        `${baseUrl}/api/catbox`,
+        attachment.url,
         {
-          params: {
-            url: attachmentUrl
-          },
-          timeout: 100000
+          responseType: "stream",
+          timeout: 60000
         }
       );
 
-      if (
-        response.data &&
-        response.data.status === true &&
-        response.data.link
-      ) {
-        const link = response.data.link;
+      const writer = fs.createWriteStream(tempPath);
 
-        // Success reaction
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+      });
+
+      if (!fs.existsSync(tempPath)) {
+        throw new Error("Temporary file তৈরি করা যায়নি।");
+      }
+
+      let finalLink = null;
+
+      // ==================================================
+      // 1️⃣ CATBOX
+      // ==================================================
+
+      try {
+        const form = new FormData();
+
+        form.append("reqtype", "fileupload");
+
+        form.append(
+          "fileToUpload",
+          fs.createReadStream(tempPath)
+        );
+
+        const upload = await axios.post(
+          "https://catbox.moe/user/api.php",
+          form,
+          {
+            headers: form.getHeaders(),
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
+            timeout: 120000
+          }
+        );
+
+        const link = String(upload.data || "").trim();
+
+        if (link.startsWith("https://")) {
+          finalLink = link;
+        }
+      } catch (error) {
+        console.log(
+          "⚠️ Catbox failed:",
+          error.message
+        );
+      }
+
+      // ==================================================
+      // 2️⃣ TMPFILES FALLBACK
+      // ==================================================
+
+      if (!finalLink) {
+        try {
+          const form = new FormData();
+
+          form.append(
+            "file",
+            fs.createReadStream(tempPath)
+          );
+
+          const upload = await axios.post(
+            "https://tmpfiles.org/api/v1/upload",
+            form,
+            {
+              headers: form.getHeaders(),
+              maxBodyLength: Infinity,
+              maxContentLength: Infinity,
+              timeout: 120000
+            }
+          );
+
+          const raw =
+            upload.data?.data?.url;
+
+          if (raw) {
+            finalLink = raw.replace(
+              "https://tmpfiles.org/",
+              "https://tmpfiles.org/dl/"
+            );
+          }
+        } catch (error) {
+          console.log(
+            "⚠️ Tmpfiles failed:",
+            error.message
+          );
+        }
+      }
+
+      // ==================================================
+      // 3️⃣ 0X0.ST FALLBACK
+      // ==================================================
+
+      if (!finalLink) {
+        try {
+          const form = new FormData();
+
+          form.append(
+            "file",
+            fs.createReadStream(tempPath)
+          );
+
+          const upload = await axios.post(
+            "https://0x0.st",
+            form,
+            {
+              headers: form.getHeaders(),
+              maxBodyLength: Infinity,
+              maxContentLength: Infinity,
+              timeout: 120000
+            }
+          );
+
+          const link =
+            String(upload.data || "").trim();
+
+          if (link.startsWith("http")) {
+            finalLink = link;
+          }
+        } catch (error) {
+          console.log(
+            "⚠️ 0x0.st failed:",
+            error.message
+          );
+        }
+      }
+
+      // ==============================
+      // ALL SERVER FAILED
+      // ==============================
+
+      if (!finalLink) {
+        throw new Error(
+          "সব upload server ব্যর্থ হয়েছে। পরে আবার চেষ্টা করুন।"
+        );
+      }
+
+      // ==============================
+      // DELETE LOADING MESSAGE
+      // ==============================
+
+      if (loadingMsg?.messageID) {
+        try {
+          await api.unsendMessage(
+            loadingMsg.messageID
+          );
+        } catch {}
+      }
+
+      // ==============================
+      // SUCCESS REACTION
+      // ==============================
+
+      api.setMessageReaction(
+        "✅",
+        event.messageID,
+        () => {},
+        true
+      );
+
+      // ==============================
+      // SUCCESS MESSAGE
+      // ==============================
+
+      return message.reply(
+        `╭───────────────╮
+   📤 UPLOAD SUCCESS
+╰───────────────╯
+
+📁 Type: ${attachment.type || "media"}
+
+🔗 Direct Link:
+${finalLink}
+
+✅ Uploaded Successfully`
+      );
+
+    } catch (err) {
+
+      console.error(
+        "CATBOX ERROR:",
+        err
+      );
+
+      // ==============================
+      // REMOVE LOADING MESSAGE
+      // ==============================
+
+      if (loadingMsg?.messageID) {
+        try {
+          await api.unsendMessage(
+            loadingMsg.messageID
+          );
+        } catch {}
+      }
+
+      // ==============================
+      // ERROR REACTION
+      // ==============================
+
+      try {
         api.setMessageReaction(
-          "✅",
+          "❌",
           event.messageID,
           () => {},
           true
         );
-
-        return message.reply(getLang("success", link));
-      }
-
-      throw new Error(
-        response.data?.error || "API থেকে valid link পাওয়া যায়নি"
-      );
-
-    } catch (error) {
-      console.error("[CATBOX2 ERROR]", error);
-
-      api.setMessageReaction(
-        "❌",
-        event.messageID,
-        () => {},
-        true
-      );
-
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
-        "Unknown error";
+      } catch {}
 
       return message.reply(
-        getLang("error", errorMessage)
+        `╭───────────────╮
+   ❌ UPLOAD FAILED
+╰───────────────╯
+
+⚠️ ${err.message || "Unknown error"}
+
+🔄 Please try again.`
       );
+
+    } finally {
+
+      // ==============================
+      // CLEAN TEMP FILE
+      // ==============================
+
+      try {
+        if (
+          tempPath &&
+          fs.existsSync(tempPath)
+        ) {
+          await fs.remove(tempPath);
+        }
+      } catch (error) {
+        console.log(
+          "Temp cleanup failed:",
+          error.message
+        );
+      }
     }
   }
 };
+
+Install dependencies:
+
+npm install axios fs-extra form-data
+
+ব্যবহার:
+
+catbox
+
+তারপর কোনো ছবি / ভিডিও / অডিও / GIF-এর মেসেজে Reply করে কমান্ড দেবে।
