@@ -6,7 +6,7 @@ const os = require("os");
 
 module.exports = {
   config: {
-    name: "n",
+    name: "catbox2",
     aliases: ["up", "upload", "cb"],
     version: "2.0.0",
     author: "হৃদয় হাসান শান্ত",
