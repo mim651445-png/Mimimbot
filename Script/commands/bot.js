@@ -1,930 +1,460 @@
-/**
- * ╔══════════════════════════════════════════════╗
- *              🎀 MIM.JS v2.1
- *          FULL SMART AUTO REPLY
- * ╠══════════════════════════════════════════════╣
- * 🤖 AI API Reply
- * 💬 No-Prefix Auto Reply
- * 🎀 Mim Trigger
- * 🎲 Random Reply
- * 🎓 Teach System
- * 🔁 Reply Chain
- * 🏷️ Mention Support
- * 🛡️ Error Handling
- * ⏱️ Cooldown System
- * ⚡ Fast Response
- * 🔄 Event Fallback
- * ╚══════════════════════════════════════════════╝
- */
+const fs = global.nodemodule["fs-extra"];
 
-const axios = require("axios");
-
-// ═════════════════════════════════════════════
-// ⚙️ SETTINGS
-// ═════════════════════════════════════════════
-
-const BASE_API_URL = "https://noobs-api.top/dipto/baby";
-
-const SETTINGS = {
-  timeout: 15000,
-  font: 1,
-  maxLength: 1500,
-  cooldown: 2,
-
-  // true করলে সাধারণ কথাতেও Mim reply দিতে পারবে
-  smartAutoReply: true,
-
-  // true করলে Mim/মিম trigger অবশ্যই কাজ করবে
-  mimTrigger: true
+module.exports.config = {
+  name: "Obot",
+  version: "2.0.0",
+  hasPermssion: 0,
+  credits: "💙 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨 💙",
+  description: "Smart No-Prefix Auto Reply Bot",
+  commandCategory: "Noprefix",
+  usages: "noprefix",
+  cooldowns: 5
 };
 
-// ═════════════════════════════════════════════
-// 🎀 MIM TRIGGERS
-// ═════════════════════════════════════════════
-
-const MIM_TRIGGERS = [
-  "mim",
-  "mimi",
-  "মিম",
-  "মিমি"
-];
-
-// ═════════════════════════════════════════════
-// 🧠 SMART WORDS
-// ═════════════════════════════════════════════
-
-const SMART_WORDS = [
-  "হাই",
-  "হ্যালো",
-  "হাই মিম",
-  "হ্যালো মিম",
-  "hello",
-  "hi",
-  "hey",
-  "হেই",
-  "কেমন আছো",
-  "কেমন আছ",
-  "কি খবর",
-  "কী খবর",
-  "কে তুমি",
-  "তুমি কে",
-  "কি করো",
-  "কী করো",
-  "শুভ সকাল",
-  "শুভ রাত্রি",
-  "good morning",
-  "good night",
-  "thanks",
-  "thank you",
-  "ধন্যবাদ",
-  "ভালো আছো",
-  "ভালো আছ",
-  "ঘুমাইছো",
-  "ঘুমাচ্ছো",
-  "খাইছো",
-  "খেয়েছো",
-  "খেয়েছো"
-];
-
-// ═════════════════════════════════════════════
-// 🎲 RANDOM REPLIES
-// ═════════════════════════════════════════════
-
-const RANDOM_REPLIES = [
-  "জি বলুন, Mim শুনছি 🎀",
-  "হুম, আমাকে ডাকছিলে? 👀",
-  "হাই! কেমন আছো? 🥰",
-  "হ্যালো! Mim এখানে আছি 🤖🎀",
-  "কী খবর তোমার? 😌",
-  "জি বলুন, কী দরকার? 😇",
-  "আমি Online আছি ⚡",
-  "Mim হাজির! 🎀✨",
-  "এত ডাকছো কেন? 😂",
-  "হুম বলো, শুনছি 👀",
-  "কী ব্যাপার? 😌",
-  "আমি কিন্তু সব শুনতেছি 👀",
-  "জি বস! 🫡",
-  "বলুন, কী সাহায্য লাগবে? 🤖",
-  "আজকে Mim একদম Active 🔥",
-  "হুমম... বলো তো 🎀",
-  "আমি তো এখানেই আছি 😎",
-  "Mim Ready! 💬✨",
-  "ডাক দিলে তো আসতেই হবে 😌🎀"
-];
-
-// ═════════════════════════════════════════════
-// 🚨 ERROR REPLIES
-// ═════════════════════════════════════════════
-
-const ERROR_REPLIES = [
-  "⚠️ Mim একটু Busy আছে, আবার চেষ্টা করো।",
-  "😵‍💫 API একটু সমস্যা করছে!",
-  "🔄 একটু পরে আবার বলো।",
-  "⚡ Mim এখন উত্তর দিতে পারছে না।",
-  "🥲 Connection Problem! আবার চেষ্টা করো।"
-];
-
-// ═════════════════════════════════════════════
-// ⏱️ COOLDOWN
-// ═════════════════════════════════════════════
-
-const cooldowns = new Map();
-
-function isCooldown(senderID) {
-  if (!senderID) return false;
-
-  const now = Date.now();
-  const last = cooldowns.get(senderID) || 0;
-
-  if (now - last < SETTINGS.cooldown * 1000) {
-    return true;
-  }
-
-  cooldowns.set(senderID, now);
-
-  // Memory clean
-  setTimeout(() => {
-    const current = cooldowns.get(senderID);
-
-    if (current === now) {
-      cooldowns.delete(senderID);
-    }
-  }, SETTINGS.cooldown * 1000 + 1000);
-
-  return false;
-}
-
-// ═════════════════════════════════════════════
-// 🎲 RANDOM PICK
-// ═════════════════════════════════════════════
-
-function randomReply(list) {
-  return list[Math.floor(Math.random() * list.length)];
-}
-
-// ═════════════════════════════════════════════
-// ✂️ TEXT LIMIT
-// ═════════════════════════════════════════════
-
-function limitText(text) {
-  if (!text) return "";
-
-  text = String(text).trim();
-
-  if (text.length > SETTINGS.maxLength) {
-    return text.substring(0, SETTINGS.maxLength);
-  }
-
-  return text;
-}
-
-// ═════════════════════════════════════════════
-// 🤖 API REQUEST
-// ═════════════════════════════════════════════
-
-async function callAPI(params = {}) {
-  const response = await axios.get(BASE_API_URL, {
-    params,
-    timeout: SETTINGS.timeout,
-    headers: {
-      "User-Agent": "MimBot/2.1"
-    }
-  });
-
-  return response.data;
-}
-
-// ═════════════════════════════════════════════
-// 🔍 GET API REPLY
-// ═════════════════════════════════════════════
-
-function getAPIReply(data) {
-  if (!data) return "";
-
-  if (typeof data === "string") {
-    return limitText(data);
-  }
-
-  const reply =
-    data.reply ||
-    data.response ||
-    data.message ||
-    data.answer ||
-    data.data?.reply ||
-    data.data?.response ||
-    "";
-
-  return limitText(reply);
-}
-
-// ═════════════════════════════════════════════
-// 🤖 BOT SELF CHECK
-// ═════════════════════════════════════════════
-
-function isBotMessage(api, senderID) {
-  try {
-    if (
-      typeof api.getCurrentUserID === "function" &&
-      api.getCurrentUserID() == senderID
-    ) {
-      return true;
-    }
-  } catch (e) {}
-
-  return false;
-}
-
-// ═════════════════════════════════════════════
-// 🔁 TRACK REPLY
-// ═════════════════════════════════════════════
-
-function trackReply(info, senderID) {
-  try {
-    if (
-      global.GoatBot &&
-      global.GoatBot.onReply &&
-      info &&
-      info.messageID
-    ) {
-      global.GoatBot.onReply.set(info.messageID, {
-        commandName: "mim",
-        messageID: info.messageID,
-        author: senderID
-      });
-    }
-  } catch (e) {
-    console.error("[MIM TRACK ERROR]", e.message);
-  }
-}
-
-// ═════════════════════════════════════════════
-// 📤 SEND MIM MESSAGE
-// ═════════════════════════════════════════════
-
-function sendMimReply(
-  api,
-  body,
-  threadID,
-  messageID,
-  senderID,
-  mentions = []
-) {
-  return new Promise((resolve) => {
-    try {
-      api.sendMessage(
-        {
-          body: limitText(body),
-          ...(mentions.length ? { mentions } : {})
-        },
-        threadID,
-        (err, info) => {
-          if (!err && info) {
-            trackReply(info, senderID);
-          }
-
-          resolve(info);
-        },
-        messageID
-      );
-    } catch (error) {
-      console.error("[MIM SEND ERROR]", error.message);
-      resolve(null);
-    }
-  });
-}
-
-// ═════════════════════════════════════════════
-// 🎀 GET USER NAME
-// ═════════════════════════════════════════════
-
-async function getUserName(usersData, senderID) {
-  try {
-    if (usersData && typeof usersData.getName === "function") {
-      const name = await usersData.getName(senderID);
-
-      if (name) {
-        return name;
-      }
-    }
-  } catch (e) {}
-
-  return "বন্ধু";
-}
-
-// ═════════════════════════════════════════════
-// 🎀 CHECK MIM TRIGGER
-// ═════════════════════════════════════════════
-
-function getMimQuery(text) {
-  if (!text) return null;
-
-  const regex =
-    /^(mim|mimi|মিম|মিমি)(?:\s+|$)/i;
-
-  if (!regex.test(text)) {
-    return null;
-  }
-
-  return text
-    .replace(regex, "")
-    .trim();
-}
-
-// ═════════════════════════════════════════════
-// 🧠 CHECK SMART WORD
-// ═════════════════════════════════════════════
-
-function isSmartMessage(text) {
-  if (!text) return false;
-
-  const lower = text.toLowerCase().trim();
-
-  return SMART_WORDS.some((word) => {
-    const w = word.toLowerCase();
-
-    return (
-      lower === w ||
-      lower.startsWith(w + " ")
-    );
-  });
-}
-
-// ═════════════════════════════════════════════
-// 🎓 TEACH HANDLER
-// ═════════════════════════════════════════════
-
-async function teachMim({
-  api,
-  threadID,
-  messageID,
-  senderID,
-  input
-}) {
-  try {
-    if (!input.includes("-")) {
-      return api.sendMessage(
-        `╭─━━━━━━━━━━━━─╮
-       🎓 MIM TEACH
-╰─━━━━━━━━━━━━─╯
-
-❌ Format ভুল!
-
-✅ সঠিক Format:
-
-mim teach প্রশ্ন - উত্তর
-
-📝 Example:
-
-mim teach তুমি কেমন - আমি ভালো আছি 🎀
-
-╰─━━━━━━━━━━━━─╯`,
-        threadID,
-        messageID
-      );
-    }
-
-    const parts = input.split(
-      /\s*-\s*/,
-      2
-    );
-
-    const question =
-      parts[0]?.trim();
-
-    const answer =
-      parts[1]?.trim();
-
-    if (!question || !answer) {
-      return api.sendMessage(
-        "❌ প্রশ্ন এবং উত্তর দুটোই দিতে হবে।",
-        threadID,
-        messageID
-      );
-    }
-
-    const data = await callAPI({
-      teach: question,
-      reply: answer,
-      senderID
-    });
-
-    const result =
-      data?.message ||
-      data?.reply ||
-      "Successfully Added!";
-
-    return api.sendMessage(
-      `╭─━━━━━━━━━━━━─╮
-       🎀 MIM TEACH
-╰─━━━━━━━━━━━━─╯
-
-❓ প্রশ্ন:
-${question}
-
-💬 উত্তর:
-${answer}
-
-━━━━━━━━━━━━━━━
-
-✅ ${result}
-
-🎀 এখন Mim এই উত্তরটি মনে রাখবে।
-
-╰─━━━━━━━━━━━━─╯`,
-      threadID,
-      messageID
-    );
-
-  } catch (error) {
-    console.error(
-      "[MIM TEACH ERROR]",
-      error.message
-    );
-
-    return api.sendMessage(
-      randomReply(ERROR_REPLIES),
-      threadID,
-      messageID
-    );
-  }
-}
-
-// ═════════════════════════════════════════════
-// 🤖 AI REPLY
-// ═════════════════════════════════════════════
-
-async function getMimAIReply(
+module.exports.handleEvent = async function ({
   api,
   event,
-  text
-) {
-  const {
-    threadID,
-    messageID,
-    senderID
-  } = event;
+  args,
+  Threads,
+  Users
+}) {
 
   try {
-    const query = limitText(text);
+    const { threadID, messageID, body } = event;
 
-    if (!query) {
-      return sendMimReply(
-        api,
-        randomReply(RANDOM_REPLIES),
-        threadID,
-        messageID,
-        senderID
-      );
-    }
+    if (!body) return;
 
-    const data = await callAPI({
-      text: query,
-      senderID,
-      font: SETTINGS.font
-    });
+    const text = body.trim().toLowerCase();
 
-    const reply = getAPIReply(data);
+    const name = await Users.getNameUser(event.senderID);
 
-    if (!reply) {
-      return sendMimReply(
-        api,
-        randomReply(ERROR_REPLIES),
-        threadID,
-        messageID,
-        senderID
-      );
-    }
+    // =========================================================
+    // 🤖 RANDOM AUTO REPLIES
+    // =========================================================
 
-    return sendMimReply(
-      api,
-      `╭─━━━━━━━━━━━━─╮
-          🎀 MIM
-╰─━━━━━━━━━━━━─╯
+    const replies = [
+      "হ্যাঁ বলো 😌 তোমার জন্য কী করতে পারি?",
+      "এত ডাকো কেন? 😒",
+      "বলো, শুনছি আমি 😏",
+      "কী হয়েছে? এভাবে ডাকছো কেন? 🤔",
+      "হুদাই ডাকাডাকি করো কেন? 😂",
+      "আমি এখানে আছি, বলো কী বলবে 😄",
+      "একটু শান্ত হও, তারপর বলো 😌",
+      "বারবার ডাকলে কিন্তু লজ্জা লাগে 🙈",
+      "তোমার কথা শুনছি, বলো 😊",
+      "ওই যে, আবার আমাকে ডাকছে! 😑",
+      "কী ব্যাপার? আমাকে মনে পড়লো নাকি? 😆",
+      "বলো বন্ধু, কী খবর? 🌸",
+      "আজকে এত ডাকাডাকি কেন? 😂",
+      "আমি তো এখানেই আছি 😎",
+      "বলো কী করতে পারি তোমার জন্য?",
+      "আসসালামু আলাইকুম 🌸 বলুন, কী করতে পারি?",
+      "ওয়ালাইকুমুস সালাম 🖤",
+      "ভালো আছো তো? 😊",
+      "মন খারাপ নাকি? 🥺",
+      "হাসো তো একটু 😄",
+      "এত সিরিয়াস কেন? একটু হাসো 😂",
+      "তোমার মেসেজ পেলাম 😌",
+      "কী অবস্থা সবার? 😎",
+      "গ্রুপে এত চুপচাপ কেন? 🤔",
+      "আমি কিন্তু সব দেখছি 👀",
+      "বট বলে অবহেলা করো না কিন্তু 😒",
+      "আমাকে ডাকলে উত্তর দিতেই হবে নাকি? 😂",
+      "ঠিক আছে, বলো কী দরকার 😌",
+      "আমি প্রস্তুত, প্রশ্ন করুন 😎"
+    ];
 
-${reply}
+    const randomReply =
+      replies[Math.floor(Math.random() * replies.length)];
 
-╰─━━━━━━━━━━━━─╯`,
-      threadID,
-      messageID,
-      senderID
-    );
+    // =========================================================
+    // 💙 SPECIAL REPLIES
+    // =========================================================
 
-  } catch (error) {
-    console.error(
-      "[MIM AI ERROR]",
-      error.message
-    );
-
-    return sendMimReply(
-      api,
-      randomReply(ERROR_REPLIES),
-      threadID,
-      messageID,
-      senderID
-    );
-  }
-}
-
-// ═════════════════════════════════════════════
-// 🎀 MODULE
-// ═════════════════════════════════════════════
-
-module.exports = {
-
-  config: {
-    name: "mim",
-
-    aliases: [
-      "mimi",
-      "মিম",
-      "মিমি"
-    ],
-
-    version: "2.1.0",
-
-    author: "হৃদয় হাসান শান্ত",
-
-    countDown: SETTINGS.cooldown,
-
-    role: 0,
-
-    description:
-      "🎀 Mim Full Smart AI Auto Reply System",
-
-    category: "fun",
-
-    guide: {
-      en:
-        "{pn} [text]\n" +
-        "{pn} teach question - answer"
-    }
-  },
-
-  // ═══════════════════════════════════════════
-  // ▶️ COMMAND
-  // ═══════════════════════════════════════════
-
-  onStart: async function ({
-    api,
-    event,
-    args,
-    usersData
-  }) {
-
-    const {
-      threadID,
-      messageID,
-      senderID
-    } = event;
-
-    try {
-
-      if (isCooldown(senderID)) {
-        return;
-      }
-
-      const name =
-        await getUserName(
-          usersData,
-          senderID
-        );
-
-      // Empty command
-      if (!args.length) {
-
-        return sendMimReply(
-          api,
-
-          `╭─━━━━━━━━━━━━─╮
-        🎀 MIM ONLINE
-╰─━━━━━━━━━━━━─╯
-
-👤 ${name}
-
-💬 কিছু বলো...
-🤖 Mim তোমার কথা শুনছে!
-
-━━━━━━━━━━━━━━━
-🎀 Type: mim + message
-╰─━━━━━━━━━━━━─╯`,
-
-          threadID,
-          messageID,
-          senderID,
-
-          [
-            {
-              tag: name,
-              id: senderID
-            }
-          ]
-        );
-      }
-
-      // Teach
-      if (
-        args[0] &&
-        args[0].toLowerCase() === "teach"
-      ) {
-
-        const input =
-          args
-            .slice(1)
-            .join(" ")
-            .trim();
-
-        return teachMim({
-          api,
-          threadID,
-          messageID,
-          senderID,
-          input
-        });
-      }
-
-      // AI
-      const text =
-        args.join(" ");
-
-      return getMimAIReply(
-        api,
-        event,
-        text
-      );
-
-    } catch (error) {
-
-      console.error(
-        "[MIM COMMAND ERROR]",
-        error.message
-      );
-
+    if (
+      text === "miss you" ||
+      text === "miss u"
+    ) {
       return api.sendMessage(
-        randomReply(ERROR_REPLIES),
+        "আমাকে মিস করার জন্য ধন্যবাদ 😂💙",
         threadID,
         messageID
       );
     }
-  },
 
-  // ═══════════════════════════════════════════
-  // 🔁 ON REPLY
-  // ═══════════════════════════════════════════
-
-  onReply: async function ({
-    api,
-    event
-  }) {
-
-    if (!event?.body) return;
-
-    const {
-      body,
-      senderID,
-      threadID,
-      messageID
-    } = event;
-
-    try {
-
-      if (isBotMessage(api, senderID)) {
-        return;
-      }
-
-      if (isCooldown(senderID)) {
-        return;
-      }
-
-      const text =
-        limitText(body);
-
-      if (!text) return;
-
-      return getMimAIReply(
-        api,
-        event,
-        text
-      );
-
-    } catch (error) {
-
-      console.error(
-        "[MIM REPLY ERROR]",
-        error.message
+    if (
+      text === "morning" ||
+      text === "good morning"
+    ) {
+      return api.sendMessage(
+        "🌞 GOOD MORNING!\nদাত ব্রাশ করে নাস্তা করে নাও 😄",
+        threadID,
+        messageID
       );
     }
-  },
 
-  // ═══════════════════════════════════════════
-  // 💬 NO PREFIX AUTO REPLY
-  // ═══════════════════════════════════════════
-
-  onChat: async function ({
-    api,
-    event,
-    usersData
-  }) {
-
-    if (!event?.body) return;
-
-    const {
-      body,
-      senderID,
-      threadID,
-      messageID
-    } = event;
-
-    try {
-
-      // Bot নিজেকে reply করবে না
-      if (isBotMessage(api, senderID)) {
-        return;
-      }
-
-      const text =
-        String(body).trim();
-
-      if (!text) return;
-
-      // ═══════════════════════════════════════
-      // 🎀 MIM TRIGGER
-      // ═══════════════════════════════════════
-
-      const mimQuery =
-        getMimQuery(text);
-
-      if (
-        SETTINGS.mimTrigger &&
-        mimQuery !== null
-      ) {
-
-        if (isCooldown(senderID)) {
-          return;
-        }
-
-        // শুধু "Mim"
-        if (!mimQuery) {
-
-          const name =
-            await getUserName(
-              usersData,
-              senderID
-            );
-
-          return sendMimReply(
-            api,
-
-            `╭─━━━━━━━━━━━━─╮
-        🎀 MIM
-╰─━━━━━━━━━━━━─╯
-
-「 ${name} 」
-
-${randomReply(RANDOM_REPLIES)}
-
-╰─━━━━━━━━━━━━─╯`,
-
-            threadID,
-            messageID,
-            senderID,
-
-            [
-              {
-                tag: name,
-                id: senderID
-              }
-            ]
-          );
-        }
-
-        // Mim + Text
-        return getMimAIReply(
-          api,
-          event,
-          mimQuery
-        );
-      }
-
-      // ═══════════════════════════════════════
-      // 🧠 SMART AUTO REPLY
-      // ═══════════════════════════════════════
-
-      if (
-        SETTINGS.smartAutoReply &&
-        isSmartMessage(text)
-      ) {
-
-        if (isCooldown(senderID)) {
-          return;
-        }
-
-        return getMimAIReply(
-          api,
-          event,
-          text
-        );
-      }
-
-    } catch (error) {
-
-      console.error(
-        "[MIM ONCHAT ERROR]",
-        error.message
+    if (
+      text === "good night" ||
+      text === "night"
+    ) {
+      return api.sendMessage(
+        "🌙 GOOD NIGHT!\nভালো করে ঘুমাও 😴✨",
+        threadID,
+        messageID
       );
     }
-  },
 
-  // ═══════════════════════════════════════════
-  // 🔄 EVENT FALLBACK
-  // ═══════════════════════════════════════════
-  // কিছু GoatBot setup-এ onChat কাজ না করলে
-  // handleEvent fallback হিসেবে রাখা হয়েছে।
-
-  handleEvent: async function ({
-    api,
-    event,
-    usersData
-  }) {
-
-    if (!event?.body) return;
-
-    try {
-
-      if (isBotMessage(api, event.senderID)) {
-        return;
-      }
-
-      const text =
-        String(event.body).trim();
-
-      if (!text) return;
-
-      const mimQuery =
-        getMimQuery(text);
-
-      // Mim trigger
-      if (
-        SETTINGS.mimTrigger &&
-        mimQuery !== null
-      ) {
-
-        if (isCooldown(event.senderID)) {
-          return;
-        }
-
-        if (!mimQuery) {
-
-          const name =
-            await getUserName(
-              usersData,
-              event.senderID
-            );
-
-          return sendMimReply(
-            api,
-            `「 ${name} 」\n\n🎀 ${randomReply(RANDOM_REPLIES)}`,
-            event.threadID,
-            event.messageID,
-            event.senderID,
-            [
-              {
-                tag: name,
-                id: event.senderID
-              }
-            ]
-          );
-        }
-
-        return getMimAIReply(
-          api,
-          event,
-          mimQuery
-        );
-      }
-
-      // Smart words
-      if (
-        SETTINGS.smartAutoReply &&
-        isSmartMessage(text)
-      ) {
-
-        if (isCooldown(event.senderID)) {
-          return;
-        }
-
-        return getMimAIReply(
-          api,
-          event,
-          text
-        );
-      }
-
-    } catch (error) {
-
-      console.error(
-        "[MIM EVENT ERROR]",
-        error.message
+    if (
+      text === "sim" ||
+      text === "simsimi"
+    ) {
+      return api.sendMessage(
+        "Simsimi কমান্ড ব্যবহার করতে `baby` কমান্ড চেষ্টা করতে পারো 🤖",
+        threadID,
+        messageID
       );
     }
+
+    if (
+      text === "oi keray" ||
+      text === "ওই কিরে"
+    ) {
+      return api.sendMessage(
+        "ওই যে! 😄 কী হয়েছে বলো?",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 👑 OWNER / CREATOR
+    // =========================================================
+
+    if (
+      text === "owner" ||
+      text === "ceo" ||
+      text === "admin" ||
+      text === "boter admin"
+    ) {
+      return api.sendMessage(
+        "👑 𝐎𝐖𝐍𝐄𝐑\n\n💙 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨\n✨ হৃদয় হাসান শান্ত",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "tor boss ke" ||
+      text === "admin ke"
+    ) {
+      return api.sendMessage(
+        "👑 My Creator: হৃদয় হাসান শান্ত\n💙 Hridoy Hasan Shanto",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "hridoy" ||
+      text === "hriday" ||
+      text === "হৃদয়" ||
+      text === "হৃদয়" ||
+      text === "হৃদয় হাসান শান্ত" ||
+      text === "হৃদয় হাসান শান্ত"
+    ) {
+      return api.sendMessage(
+        "💙 হৃদয় হাসান শান্ত এখন কাজে ব্যস্ত আছেন।\nআপনার কথা আমাকে বলতে পারেন 😊",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 🤖 BOT NAME
+    // =========================================================
+
+    if (
+      text === "name" ||
+      text === "tor nam ki" ||
+      text === "তোমার নাম কি" ||
+      text === "তোর নাম কি"
+    ) {
+      return api.sendMessage(
+        "🤖 আমার নাম — 𝐎𝐁𝐨𝐭\n\n👑 Creator: 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨 💙",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // ❤️ LOVE / FRIENDLY
+    // =========================================================
+
+    if (
+      text === "kiss me"
+    ) {
+      return api.sendMessage(
+        "😂 না না, আগে ভালো বন্ধু হও!",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "tnx" ||
+      text === "ধন্যবাদ" ||
+      text === "thank you" ||
+      text === "thanks"
+    ) {
+      return api.sendMessage(
+        "You're welcome! 😊💙",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "gf" ||
+      text === "bf"
+    ) {
+      return api.sendMessage(
+        "😂 আগে ভালো মানুষ হও, তারপর এসব চিন্তা করো!",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "tumi khaiso" ||
+      text === "khaicho" ||
+      text === "তুমি খাইছো"
+    ) {
+      return api.sendMessage(
+        "আমি তো বট 🤖 খাবার খাই না! তুমি ঠিকমতো খেয়ে নাও 😊",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "tumi ki amake bhalobaso" ||
+      text === "tmi ki amake vlo basho"
+    ) {
+      return api.sendMessage(
+        "আমি সবার সাথে বন্ধুর মতো থাকি 😊💙",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 😊 HOW ARE YOU
+    // =========================================================
+
+    if (
+      text === "kmon acho" ||
+      text === "how are you" ||
+      text === "how are you?"
+    ) {
+      return api.sendMessage(
+        "আমি ভালো আছি 😊 তুমি কেমন আছো?",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "mon kharap" ||
+      text === "tmr ki mon kharap"
+    ) {
+      return api.sendMessage(
+        "মন খারাপ করো না 🥺 সব ঠিক হয়ে যাবে ইনশাআল্লাহ 💙",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 👋 BYE
+    // =========================================================
+
+    if (
+      text === "by" ||
+      text === "bye" ||
+      text === "বাই" ||
+      text === "jaiga" ||
+      text === "যাই গা" ||
+      text === "pore kotha hbe"
+    ) {
+      return api.sendMessage(
+        "ঠিক আছে 😊 পরে আবার কথা হবে। ভালো থেকো 💙",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 🤫 STOP
+    // =========================================================
+
+    if (
+      text === "chup" ||
+      text === "stop" ||
+      text === "চুপ কর" ||
+      text === "chup kor"
+    ) {
+      return api.sendMessage(
+        "আচ্ছা আচ্ছা 🤐 আমি চুপ!",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 🕌 ISLAMIC GREETING
+    // =========================================================
+
+    if (
+      text === "আসসালামু আলাইকুম" ||
+      text === "assalamualaikum" ||
+      text === "assalamu alaikum" ||
+      text === "salam"
+    ) {
+      return api.sendMessage(
+        "🌸 ওয়ালাইকুমুস সালাম ওয়া রহমাতুল্লাহি ওয়া বারাকাতুহু 🌸",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 🤖 AI
+    // =========================================================
+
+    if (
+      text === "ai"
+    ) {
+      return api.sendMessage(
+        "🤖 AI ব্যবহার করতে `/ai` কমান্ড লিখুন।",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 📸 PIC
+    // =========================================================
+
+    if (
+      text === "pic de" ||
+      text === "ss daw"
+    ) {
+      return api.sendMessage(
+        "📸 ছবি পাঠানোর কমান্ড ব্যবহার করুন।",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 😄 EMOJI / DOT
+    // =========================================================
+
+    if (
+      text === "...." ||
+      text === "..." ||
+      text === ".........." ||
+      text === "😠" ||
+      text === "🤬" ||
+      text === "😾"
+    ) {
+      return api.sendMessage(
+        "😂 এত রাগ কেন? একটু শান্ত হও!",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 😂 FUNNY
+    // =========================================================
+
+    if (
+      text === "kire"
+    ) {
+      return api.sendMessage(
+        "হ্যাঁ বলো 😄 কী খবর?",
+        threadID,
+        messageID
+      );
+    }
+
+    if (
+      text === "bc" ||
+      text === "mc"
+    ) {
+      return api.sendMessage(
+        "SAME TO YOU 😊",
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 🕊️ RANDOM NO-PREFIX REPLY
+    // =========================================================
+
+    if (
+      text === "obot" ||
+      text === "bot" ||
+      text === "বট"
+    ) {
+      return api.sendMessage(
+        {
+          body: `${name}, ${randomReply}\n\n💙 — 𝐎𝐁𝐨𝐭 | 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨`
+        },
+        threadID,
+        messageID
+      );
+    }
+
+    // =========================================================
+    // 📌 /BOT TRIGGER
+    // =========================================================
+
+    if (
+      body.startsWith("/Bot") ||
+      body.startsWith("/bot")
+    ) {
+      return api.sendMessage(
+        {
+          body:
+            `${name}, ${randomReply}\n\n` +
+            `╭──────────────╮\n` +
+            `   🤖 𝐎𝐁𝐨𝐭 𝐑𝐞𝐩𝐥𝐲\n` +
+            `   👑 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨\n` +
+            `╰──────────────╯`
+        },
+        threadID,
+        messageID
+      );
+    }
+
+  } catch (error) {
+    console.error("❌ OBot Error:", error);
   }
+};
+
+
+// =============================================================
+// 🚀 COMMAND RUN
+// =============================================================
+
+module.exports.run = function ({
+  api,
+  event,
+  client,
+  __GLOBAL
+}) {
+  // No command action
 };
