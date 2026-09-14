@@ -4,22 +4,19 @@ const path = require("path");
 
 /*
 ╔══════════════════════════════════════╗
-║          🔥 HOT2 VIDEO              ║
+║          🥵 HOT2 VIDEO              ║
 ║      🔐 ADMIN ONLY VERSION          ║
 ╚══════════════════════════════════════╝
 */
 
 module.exports.config = {
   name: "hot2",
-  version: "3.0.1",
-
-  // 🔐 2 = শুধু Admin ব্যবহার করতে পারবে
+  version: "3.1.0",
   hasPermssion: 2,
-
   credits: "হৃদয় হাসান শান্ত",
-  description: "Stylish Random Video - Admin Only",
+  description: "Random Video - Admin Only",
   commandCategory: "media",
-  usages: "🙈",
+  usages: "🥵",
   cooldowns: 5
 };
 
@@ -63,21 +60,23 @@ const videos = [
 
 /*
 ╔══════════════════════════════════╗
-║          💬 CAPTIONS             ║
+║          🥵 CAPTIONS             ║
 ╚══════════════════════════════════╝
 */
 
 const captions = [
-  "🔥 আজকের মুডটা একটু অন্যরকম! 😎",
-  "👀 শেষ পর্যন্ত দেখো কিন্তু! 🔥",
-  "😏 বেশি কিছু বলবো না... ভিডিওটাই দেখো!",
-  "🙈 চুপচাপ দেখো, কাউকে বলো না! 🤫",
-  "🎬 আজকের স্পেশাল ভিডিও — Enjoy! ❤️",
-  "😎 𝗠𝗢𝗢𝗗 𝗢𝗡 • 𝗩𝗜𝗗𝗘𝗢 𝗣𝗟𝗔𝗬 🔥",
-  "👑 𝗝𝗨𝗦𝗧 𝗙𝗢𝗥 𝗬𝗢𝗨 ❤️",
-  "🔥 Random Video Drop 😎",
-  "👀 ভিডিওটা মিস করো না!",
-  "🥰 ভালো লাগলে একটা ❤️ React দিও!"
+  "🥵 আজকের মুডটা একটু হট! 🔥",
+  "🥵🔥 ভিডিওটা শেষ পর্যন্ত দেখো!",
+  "😏🥵 বেশি কিছু বলবো না... ভিডিওটাই দেখো!",
+  "🙈🥵 চুপচাপ দেখো! 🤫",
+  "🔥🥵 আজকের স্পেশাল ভিডিও!",
+  "🥵 𝗛𝗢𝗧 𝗠𝗢𝗢𝗗 • 𝗩𝗜𝗗𝗘𝗢 𝗣𝗟𝗔𝗬 🔥",
+  "👀🥵 𝗝𝗨𝗦𝗧 𝗙𝗢𝗥 𝗬𝗢𝗨 ❤️",
+  "🔥🥵 Random Video Drop",
+  "👀🔥 ভিডিওটা মিস করো না! 🥵",
+  "🥵❤️ ভালো লাগলে একটা React দিও!",
+  "😈🥵 আজকে একটু অন্যরকম মুড!",
+  "🔥🥵 𝗛𝗢𝗧 𝗩𝗜𝗗𝗘𝗢 𝗗𝗥𝗢𝗣 🔥"
 ];
 
 
@@ -88,7 +87,6 @@ const captions = [
 */
 
 async function downloadVideo(url, filePath) {
-
   const response = await axios({
     method: "GET",
     url: url,
@@ -103,11 +101,8 @@ async function downloadVideo(url, filePath) {
   response.data.pipe(writer);
 
   return new Promise((resolve, reject) => {
-
     writer.on("finish", resolve);
-
     writer.on("error", reject);
-
     response.data.on("error", reject);
   });
 }
@@ -135,10 +130,7 @@ module.exports.run = async function ({ api, event }) {
 
   try {
 
-    /*
-    ⏳ Loading Reaction
-    */
-
+    // ⏳ Loading Reaction
     api.setMessageReaction(
       "⏳",
       messageID,
@@ -146,50 +138,30 @@ module.exports.run = async function ({ api, event }) {
       true
     );
 
-
-    /*
-    🎲 Random Video নির্বাচন
-    */
-
+    // 🎲 Random Video
     const video =
       videos[Math.floor(Math.random() * videos.length)];
 
-
-    /*
-    💬 Random Caption নির্বাচন
-    */
-
+    // 💬 Random Caption
     const caption =
       captions[Math.floor(Math.random() * captions.length)];
 
-
-    /*
-    📥 Video Download
-    */
-
+    // 📥 Download
     await downloadVideo(video, filePath);
 
-
-    /*
-    🔥 Success Reaction
-    */
-
+    // 🥵 Success Reaction
     api.setMessageReaction(
-      "🔥",
+      "🥵",
       messageID,
       () => {},
       true
     );
 
-
-    /*
-    📤 Video Send
-    */
-
+    // 📤 Send Video
     api.sendMessage(
       {
         body:
-`╭━━━〔 👑 𝗛𝗢𝗧 𝗩𝗜𝗗𝗘𝗢 〕━━━╮
+`╭━━━〔 🥵 𝗛𝗢𝗧 𝗩𝗜𝗗𝗘𝗢 〕━━━╮
 
 ${caption}
 
@@ -197,7 +169,8 @@ ${caption}
 
 👑 𝗕𝗢𝗧 : 𝗛𝗥𝗜𝗗𝗢𝗬 𝗕𝗢𝗧
 💫 𝗖𝗥𝗘𝗗𝗜𝗧𝗦 : হৃদয় হাসান শান্ত
-🔐 𝗔𝗗𝗠𝗜𝗡 𝗢𝗡𝗟𝗬`,
+🔐 𝗔𝗗𝗠𝗜𝗡 𝗢𝗡𝗟𝗬 🥵`,
+
         attachment: fs.createReadStream(filePath)
       },
 
@@ -205,38 +178,24 @@ ${caption}
 
       () => {
 
-        /*
-        🗑️ 15 সেকেন্ড পর Cache File Delete
-        */
-
+        // 🗑️ Delete Cache After 15 Seconds
         setTimeout(async () => {
-
           try {
             await fs.remove(filePath);
           } catch (e) {}
-
         }, 15000);
+
       }
     );
 
   } catch (error) {
-
-    /*
-    ╔══════════════════════════════════╗
-    ║            ❌ ERROR              ║
-    ╚══════════════════════════════════╝
-    */
 
     console.error(
       "HOT2.JS ERROR:",
       error.message
     );
 
-
-    /*
-    ❌ Error Reaction
-    */
-
+    // ❌ Error Reaction
     api.setMessageReaction(
       "❌",
       messageID,
@@ -244,11 +203,7 @@ ${caption}
       true
     );
 
-
-    /*
-    ⚠️ Error Message
-    */
-
+    // ⚠️ Error Message
     api.sendMessage(
 `╭━━━〔 ❌ 𝗘𝗥𝗥𝗢𝗥 〕━━━╮
 
@@ -262,11 +217,7 @@ ${caption}
       threadID
     );
 
-
-    /*
-    🗑️ Error হলেও Cache পরিষ্কার করা
-    */
-
+    // 🗑️ Cleanup
     try {
       await fs.remove(filePath);
     } catch (e) {}
