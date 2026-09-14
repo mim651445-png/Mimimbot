@@ -1,27 +1,33 @@
 /**
  * ╔══════════════════════════════════════════════╗
- *              🎀 MIM.JS v1.0
+ *              🎀 MIM.JS v2.0
  *          FULL SMART AUTO REPLY
  * ╠══════════════════════════════════════════════╣
  * 🤖 AI API Reply
  * 💬 Smart No-Prefix Reply
  * 🎲 Random Reply
  * 🎓 Teach System
- * 🔁 Reply System
+ * 🔁 Reply Chain
  * 🏷️ Mention Support
  * 🛡️ Error Handling
+ * ⏱️ Cooldown System
  * ⚡ Fast Response
  * ╚══════════════════════════════════════════════╝
  */
 
 const axios = require("axios");
 
+// ═════════════════════════════════════════════
+// ⚙️ SETTINGS
+// ═════════════════════════════════════════════
+
 const BASE_API_URL = "https://noobs-api.top/dipto/baby";
 
 const SETTINGS = {
   timeout: 15000,
   font: 1,
-  maxLength: 1500
+  maxLength: 1500,
+  cooldown: 2
 };
 
 // ═════════════════════════════════════════════
@@ -31,11 +37,12 @@ const SETTINGS = {
 const MIM_TRIGGERS = [
   "mim",
   "mimi",
-  "মিম"
+  "মিম",
+  "মিমি"
 ];
 
 // ═════════════════════════════════════════════
-// 💬 SMART AUTO REPLY WORDS
+// 🧠 SMART WORDS
 // ═════════════════════════════════════════════
 
 const SMART_WORDS = [
@@ -62,7 +69,7 @@ const SMART_WORDS = [
 ];
 
 // ═════════════════════════════════════════════
-// 🎲 RANDOM MIM REPLIES
+// 🎲 RANDOM REPLIES
 // ═════════════════════════════════════════════
 
 const RANDOM_REPLIES = [
@@ -77,22 +84,76 @@ const RANDOM_REPLIES = [
   "এত ডাকছো কেন? 😂",
   "হুম বলো, শুনছি 👀",
   "কী ব্যাপার? 😌",
-  "আমাকে মনে পড়েছে নাকি? 😏",
   "আমি কিন্তু সব শুনতেছি 👀",
-  "একটু আস্তে ডাকো 😴😂",
   "জি বস! 🫡",
   "বলুন, কী সাহায্য লাগবে? 🤖",
   "আজকে Mim একদম Active 🔥",
   "হুমম... বলো তো 🎀",
   "আমি তো এখানেই আছি 😎",
-  "Mim Ready! 💬✨"
+  "Mim Ready! 💬✨",
+  "ডাক দিলে তো আসতেই হবে 😌🎀"
 ];
 
 // ═════════════════════════════════════════════
-// 🔧 API REQUEST
+// 🚨 ERROR REPLIES
+// ═════════════════════════════════════════════
+
+const ERROR_REPLIES = [
+  "⚠️ Mim একটু Busy আছে, আবার চেষ্টা করো।",
+  "😵‍💫 API একটু সমস্যা করছে!",
+  "🔄 একটু পরে আবার বলো।",
+  "⚡ Mim এখন উত্তর দিতে পারছে না।",
+  "🥲 Connection Problem! আবার চেষ্টা করো।"
+];
+
+// ═════════════════════════════════════════════
+// ⏱️ COOLDOWN CACHE
+// ═════════════════════════════════════════════
+
+const cooldowns = new Map();
+
+function isCooldown(senderID) {
+  const now = Date.now();
+  const last = cooldowns.get(senderID) || 0;
+
+  if (now - last < SETTINGS.cooldown * 1000) {
+    return true;
+  }
+
+  cooldowns.set(senderID, now);
+  return false;
+}
+
+// ═════════════════════════════════════════════
+// 🎲 RANDOM PICK
+// ═════════════════════════════════════════════
+
+function randomReply(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+// ═════════════════════════════════════════════
+// ✂️ TEXT LIMIT
+// ═════════════════════════════════════════════
+
+function limitText(text) {
+  if (!text) return "";
+
+  text = String(text).trim();
+
+  if (text.length > SETTINGS.maxLength) {
+    return text.substring(0, SETTINGS.maxLength);
+  }
+
+  return text;
+}
+
+// ═════════════════════════════════════════════
+// 🤖 API REQUEST
 // ═════════════════════════════════════════════
 
 async function callAPI(params = {}) {
+
   const response = await axios.get(BASE_API_URL, {
     params,
     timeout: SETTINGS.timeout
@@ -102,16 +163,18 @@ async function callAPI(params = {}) {
 }
 
 // ═════════════════════════════════════════════
-// 🔁 SAVE REPLY
+// 🔁 TRACK REPLY
 // ═════════════════════════════════════════════
 
 function trackReply(info, senderID) {
+
   if (
     global.GoatBot &&
     global.GoatBot.onReply &&
     info &&
     info.messageID
   ) {
+
     global.GoatBot.onReply.set(info.messageID, {
       commandName: "mim",
       messageID: info.messageID,
@@ -121,7 +184,7 @@ function trackReply(info, senderID) {
 }
 
 // ═════════════════════════════════════════════
-// 📤 SEND MESSAGE
+// 📤 SEND MIM MESSAGE
 // ═════════════════════════════════════════════
 
 function sendMimReply(
@@ -132,6 +195,7 @@ function sendMimReply(
   senderID,
   mentions = []
 ) {
+
   return api.sendMessage(
     {
       body,
@@ -139,31 +203,39 @@ function sendMimReply(
     },
     threadID,
     (err, info) => {
+
       if (!err && info) {
         trackReply(info, senderID);
       }
+
     },
     messageID
   );
 }
 
 // ═════════════════════════════════════════════
-// 🎀 MIM MODULE
+// 🎀 MODULE
 // ═════════════════════════════════════════════
 
 module.exports = {
 
   config: {
     name: "mim",
-    aliases: ["mimi", "মিম"],
-    version: "1.0.0",
-    author: "Mim",
-    countDown: 0,
+    aliases: ["mimi", "মিম", "মিমি"],
+    version: "2.0.0",
+    author: "হৃদয় হাসান শান্ত",
+    countDown: SETTINGS.cooldown,
     role: 0,
-    description: "🎀 Mim Full Smart AI Auto Reply",
+
+    description:
+      "🎀 Mim Full Smart AI Auto Reply System",
+
     category: "fun",
+
     guide: {
-      en: "{pn} [text]\n{pn} teach question - answer"
+      en:
+        "{pn} [text]\n" +
+        "{pn} teach question - answer"
     }
   },
 
@@ -186,20 +258,40 @@ module.exports = {
 
     try {
 
-      const name = await usersData.getName(senderID);
+      if (isCooldown(senderID)) {
+        return;
+      }
 
-      // ───────────────────────────────────────
-      // Empty Command
-      // ───────────────────────────────────────
+      let name = "বন্ধু";
+
+      try {
+        name = await usersData.getName(senderID);
+      } catch {}
+
+      // ═══════════════════════════════════════
+      // 🎀 EMPTY COMMAND
+      // ═══════════════════════════════════════
 
       if (!args.length) {
 
         return sendMimReply(
           api,
-          `「 ${name} 」\n\n🎀 Mim Online আছে!\n💬 কিছু বলুন...`,
+
+          `╭─━━━━━━━━━━━━─╮
+      🎀 MIM ONLINE
+╰─━━━━━━━━━━━━─╯
+
+👤 ${name}
+
+💬 কিছু বলো...
+🤖 Mim তোমার কথা শুনছে!
+
+╰─━━━━━━━━━━━━─╯`,
+
           threadID,
           messageID,
           senderID,
+
           [
             {
               tag: name,
@@ -213,7 +305,10 @@ module.exports = {
       // 🎓 TEACH SYSTEM
       // ═══════════════════════════════════════
 
-      if (args[0].toLowerCase() === "teach") {
+      if (
+        args[0] &&
+        args[0].toLowerCase() === "teach"
+      ) {
 
         const input = args
           .slice(1)
@@ -223,7 +318,20 @@ module.exports = {
         if (!input.includes("-")) {
 
           return api.sendMessage(
-            "⚠️ সঠিক Format:\n\nmim teach প্রশ্ন - উত্তর",
+            `╭─━━━━━━━━━━━━─╮
+       🎓 MIM TEACH
+╰─━━━━━━━━━━━━─╯
+
+❌ Format ভুল!
+
+✅ সঠিক Format:
+
+mim teach প্রশ্ন - উত্তর
+
+📝 Example:
+
+mim teach তুমি কেমন - আমি ভালো আছি 🎀`,
+
             threadID,
             messageID
           );
@@ -234,8 +342,11 @@ module.exports = {
           2
         );
 
-        const question = parts[0]?.trim();
-        const answer = parts[1]?.trim();
+        const question =
+          parts[0]?.trim();
+
+        const answer =
+          parts[1]?.trim();
 
         if (!question || !answer) {
 
@@ -253,31 +364,35 @@ module.exports = {
         });
 
         return api.sendMessage(
+
           `╭─━━━━━━━━━━━━─╮
        🎀 MIM TEACH
 ╰─━━━━━━━━━━━━─╯
 
-❓ প্রশ্ন: ${question}
-💬 উত্তর: ${answer}
+❓ প্রশ্ন:
+${question}
 
-✅ ${data?.message || "Successfully Added!"}`,
+💬 উত্তর:
+${answer}
+
+━━━━━━━━━━━━━━━
+
+✅ ${data?.message || "Successfully Added!"}
+
+🎀 এখন Mim এই উত্তরটি মনে রাখবে।`,
+
           threadID,
           messageID
         );
       }
 
       // ═══════════════════════════════════════
-      // 🤖 NORMAL AI COMMAND
+      // 🤖 AI COMMAND
       // ═══════════════════════════════════════
 
-      let text = args.join(" ").trim();
-
-      if (text.length > SETTINGS.maxLength) {
-        text = text.substring(
-          0,
-          SETTINGS.maxLength
-        );
-      }
+      const text = limitText(
+        args.join(" ")
+      );
 
       const data = await callAPI({
         text,
@@ -288,7 +403,7 @@ module.exports = {
       if (!data?.reply) {
 
         return api.sendMessage(
-          "⚠️ Mim কোনো উত্তর পায়নি।",
+          randomReply(ERROR_REPLIES),
           threadID,
           messageID
         );
@@ -296,7 +411,7 @@ module.exports = {
 
       return sendMimReply(
         api,
-        data.reply,
+        `🎀 Mim:\n\n${data.reply}`,
         threadID,
         messageID,
         senderID
@@ -310,7 +425,7 @@ module.exports = {
       );
 
       return api.sendMessage(
-        "⚠️ Mim API Busy! একটু পরে আবার চেষ্টা করুন।",
+        randomReply(ERROR_REPLIES),
         threadID,
         messageID
       );
@@ -344,16 +459,13 @@ module.exports = {
         return;
       }
 
-      let text = body.trim();
+      if (isCooldown(senderID)) {
+        return;
+      }
+
+      let text = limitText(body);
 
       if (!text) return;
-
-      if (text.length > SETTINGS.maxLength) {
-        text = text.substring(
-          0,
-          SETTINGS.maxLength
-        );
-      }
 
       const data = await callAPI({
         text,
@@ -365,7 +477,7 @@ module.exports = {
 
       return sendMimReply(
         api,
-        data.reply,
+        `🎀 Mim:\n\n${data.reply}`,
         threadID,
         messageID,
         senderID
@@ -381,7 +493,7 @@ module.exports = {
   },
 
   // ═══════════════════════════════════════════
-  // 💬 NO-PREFIX SMART AUTO REPLY
+  // 💬 NO PREFIX AUTO REPLY
   // ═══════════════════════════════════════════
 
   onChat: async function ({
@@ -403,14 +515,27 @@ module.exports = {
 
     if (!textBody) return;
 
-    const lower = textBody.toLowerCase();
+    // ═══════════════════════════════════════
+    // 🤖 BOT SELF CHECK
+    // ═══════════════════════════════════════
+
+    try {
+
+      if (
+        typeof api.getCurrentUserID === "function" &&
+        api.getCurrentUserID() == senderID
+      ) {
+        return;
+      }
+
+    } catch {}
 
     // ═══════════════════════════════════════
-    // 🎀 MIM TRIGGER
+    // 🎀 TRIGGER CHECK
     // ═══════════════════════════════════════
 
     const triggerRegex =
-      /^(mim|mimi|মিম)(?:\s+|$)/i;
+      /^(mim|mimi|মিম|মিমি)(?:\s+|$)/i;
 
     const hasMimTrigger =
       triggerRegex.test(textBody);
@@ -419,10 +544,14 @@ module.exports = {
     // 🧠 SMART WORD CHECK
     // ═══════════════════════════════════════
 
+    const lower =
+      textBody.toLowerCase();
+
     const isSmartWord =
       SMART_WORDS.some(word => {
 
-        const w = word.toLowerCase();
+        const w =
+          word.toLowerCase();
 
         return (
           lower === w ||
@@ -430,48 +559,63 @@ module.exports = {
         );
       });
 
-    if (!hasMimTrigger && !isSmartWord) {
+    if (
+      !hasMimTrigger &&
+      !isSmartWord
+    ) {
       return;
     }
 
     // ═══════════════════════════════════════
-    // 🎀 MIM + TEXT
+    // ⏱️ COOLDOWN
+    // ═══════════════════════════════════════
+
+    if (isCooldown(senderID)) {
+      return;
+    }
+
+    // ═══════════════════════════════════════
+    // 🎀 MIM TRIGGER
     // ═══════════════════════════════════════
 
     if (hasMimTrigger) {
 
-      const query = textBody
-        .replace(
-          /^(mim|mimi|মিম)\s*/i,
-          ""
-        )
-        .trim();
+      const query =
+        textBody
+          .replace(
+            /^(mim|mimi|মিম|মিমি)\s*/i,
+            ""
+          )
+          .trim();
 
-      // ─────────────────────────────────────
-      // শুধু Mim লিখলে Random Reply
-      // ─────────────────────────────────────
+      // ═══════════════════════════════════
+      // 🎲 ONLY MIM
+      // ═══════════════════════════════════
 
       if (!query) {
 
         try {
 
-          const name =
-            await usersData.getName(senderID);
+          let name = "বন্ধু";
+
+          try {
+            name =
+              await usersData.getName(senderID);
+          } catch {}
 
           const random =
-            RANDOM_REPLIES[
-              Math.floor(
-                Math.random() *
-                RANDOM_REPLIES.length
-              )
-            ];
+            randomReply(RANDOM_REPLIES);
 
           return sendMimReply(
+
             api,
-            `「 ${name} 」\n\n${random}`,
+
+            `「 ${name} 」\n\n🎀 ${random}`,
+
             threadID,
             messageID,
             senderID,
+
             [
               {
                 tag: name,
@@ -491,36 +635,36 @@ module.exports = {
         }
       }
 
-      // ─────────────────────────────────────
-      // Mim + Text → AI
-      // ─────────────────────────────────────
+      // ═══════════════════════════════════
+      // 🤖 MIM + TEXT
+      // ═══════════════════════════════════
 
       try {
 
-        let queryText = query;
+        const queryText =
+          limitText(query);
 
-        if (
-          queryText.length >
-          SETTINGS.maxLength
-        ) {
-          queryText =
-            queryText.substring(
-              0,
-              SETTINGS.maxLength
-            );
+        const data =
+          await callAPI({
+            text: queryText,
+            senderID,
+            font: SETTINGS.font
+          });
+
+        if (!data?.reply) {
+
+          return sendMimReply(
+            api,
+            randomReply(ERROR_REPLIES),
+            threadID,
+            messageID,
+            senderID
+          );
         }
-
-        const data = await callAPI({
-          text: queryText,
-          senderID,
-          font: SETTINGS.font
-        });
-
-        if (!data?.reply) return;
 
         return sendMimReply(
           api,
-          data.reply,
+          `🎀 Mim:\n\n${data.reply}`,
           threadID,
           messageID,
           senderID
@@ -533,37 +677,36 @@ module.exports = {
           error?.message || error
         );
 
-        return;
+        return sendMimReply(
+          api,
+          randomReply(ERROR_REPLIES),
+          threadID,
+          messageID,
+          senderID
+        );
       }
     }
 
     // ═══════════════════════════════════════
-    // 🧠 SMART NO-PREFIX AI REPLY
+    // 🧠 SMART NO PREFIX AI
     // ═══════════════════════════════════════
 
     if (isSmartWord) {
 
       try {
 
-        const data = await callAPI({
-          text: textBody,
-          senderID,
-          font: SETTINGS.font
-        });
+        const data =
+          await callAPI({
+            text: limitText(textBody),
+            senderID,
+            font: SETTINGS.font
+          });
 
         if (!data?.reply) {
 
-          const random =
-            RANDOM_REPLIES[
-              Math.floor(
-                Math.random() *
-                RANDOM_REPLIES.length
-              )
-            ];
-
           return sendMimReply(
             api,
-            random,
+            randomReply(RANDOM_REPLIES),
             threadID,
             messageID,
             senderID
@@ -572,7 +715,7 @@ module.exports = {
 
         return sendMimReply(
           api,
-          data.reply,
+          `🎀 Mim:\n\n${data.reply}`,
           threadID,
           messageID,
           senderID
@@ -580,17 +723,14 @@ module.exports = {
 
       } catch (error) {
 
-        const random =
-          RANDOM_REPLIES[
-            Math.floor(
-              Math.random() *
-              RANDOM_REPLIES.length
-            )
-          ];
+        console.error(
+          "[MIM SMART ERROR]",
+          error?.message || error
+        );
 
         return sendMimReply(
           api,
-          random,
+          randomReply(RANDOM_REPLIES),
           threadID,
           messageID,
           senderID
