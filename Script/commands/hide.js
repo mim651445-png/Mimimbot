@@ -14,7 +14,7 @@
  */
 
 module.exports.config = {
-  name: "hide",
+  name: "🤫",
   version: "3.0.0",
   hasPermssion: 0,
   credits: "হৃদয় হাসান শান্ত",
