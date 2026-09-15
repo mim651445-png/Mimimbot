@@ -1,460 +1,309 @@
 const fs = global.nodemodule["fs-extra"];
-
 module.exports.config = {
   name: "Obot",
-  version: "2.0.0",
+  version: "1.0.1",
   hasPermssion: 0,
-  credits: "💙 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨 💙",
-  description: "Smart No-Prefix Auto Reply Bot",
+  credits: "🔰𝐇𝐑𝐈𝐃𝐎𝐘 𝐇𝐀𝐒𝐀𝐍 𝐒𝐇𝐀𝐍𝐓𝐎🔰",
+  description: "goibot",
   commandCategory: "Noprefix",
   usages: "noprefix",
-  cooldowns: 5
+  cooldowns: 5,
 };
+module.exports.handleEvent = async function({ api, event, args, Threads, Users }) {
+  var { threadID, messageID, reason } = event;
+  const moment = require("moment-timezone");
+  const time = moment.tz("Asia/Dhaka").format("HH:MM:ss L");
+  var idgr = `${event.threadID}`;
+  var id = event.senderID;
+  var name = await Users.getNameUser(event.senderID);
 
-module.exports.handleEvent = async function ({
-  api,
-  event,
-  args,
-  Threads,
-  Users
-}) {
+  var tl = [
+    "বেশি bot Bot করলে leave নিবো কিন্তু😒😒 ",
+    "শুনবো না😼তুমি আমার (হৃদয় হাসান শান্ত) বসকে প্রেম করাই দাও নাই🥺পচা তুমি🥺",
+    "এতো ডেকো না,প্রেম এ পরে যাবো তো🙈",
+    "বার বার ডাকলে মাথা গরম হয়ে যায় কিন্তু😑",
+    "হ্যা বলো😒, তোমার জন্য কি করতে পারি😐😑?",
+    "কী হয়ছে এতো ডাকো কেন😒",
+    "I love you janu🥰",
+    "আরে Bolo আমার জান ,কেমন আছো?😚 ",
+    " অসম্মান করছিস😰😿",
+    "বট বলে চলে যাস কেন😤🥺কী হলো উওর দে🥺",
+    " জানু বল জানু 😘 ",
+    "বার বার Disturb করছিস কোনো😾,আমার জানুর সাথে ব্যাস্ত আছি😋",
+    "এতো ডাকিস কেন🤬",
+    "আমারে এতো ডাকিস না আমি মজা করার mood এ নাই এখন😒",
+    "চিপায় আছি ডিস্টার্ব করিস না🙊🙁",
+    "হ্যাঁ জানু , এইদিক এ আসো কিস দেই🤭 😘",
+    "তোর কথা তোর বাড়ি কেউ শুনে না ,তো আমি কোনো শুনবো ?🤔😂 ",
+    "আমাকে ডেকো না,আমি ব্যাস্ত আছি",
+    "কি হলো , মিস্টেক করচ্ছিস নাকি🤣",
+    "বলো কি বলবা, সবার সামনে বলবা নাকি?🤭🤏",
+    "কালকে দেখা করিস তো একটু 😈",
+    "হা বলো, শুনছি আমি 😏",
+    "আর কত বার ডাকবি ,শুনছি তো",
+    "হুম বলো কি বলবে😒",
+    "বলো কি করতে পারি তোমার জন্য",
+    "আমি তো অন্ধ কিছু দেখি না🐸 😎",
+    "হৃদয় হাসান শান্ত তোমাকে ভালোবাসে😌",
+    "বলো জানু 🌚",
+    "তোর কি চোখে পড়ে না আমি হৃদয় হাসান শান্ত জানুর সাথে ব্যাস্ত আছি😒",
+    "আহ শুনা আমার তোমার অলিতে গলিতে উম্মাহ😇😘",
+    "jang hanga korba😒😬",
+    "একটা কথা বলতে চাইছিলাম🙂",
+    "আসসালামু আলাইকুম বলেন আপনার জন্য কি করতে পারি..!🥰",
+    "আমাকে এতো ডাকো কেন?🤔 ভলো-টালো বাসো নাকি🤭🙈",
+    "🌻🌺💚আসসালামু আলাইকুম ওয়া রাহমাতুল্লাহ-💚🌺🌻",
+    "আমি এখন বস হৃদয় হাসান শান্ত এর সাথে বিজি আছি আমাকে ডাকবেন না-😕😏 ধন্যবাদ-🤝🌻",
+    "আমাকে না ডেকে আমার বস হৃদয় হাসান শান্তকে কে একটা জি এফ দাও-😽🫶🌺",
+    "জান🥺 তুমি এখন শুধু বট বলে চলে যাও 😒 ভুলে গেলা নাকি🙂❓",
+    "উফফ বুঝলাম না এতো ডাকছেন কেনো-😤😡😈",
+    "ভালোবাসা কাকে বলে🙊❓",
+    "আজকে আমার মন ভালো নেই তাই আমারে ডাকবেন না-😪🤧",
+    "🙂শুনলাম কালকে বলে আপনার বিয়ে???",
+    "আমার বস হৃদয় হাসান শান্ত এর হবু বউ রে কেও দেকছো খুজে পাচ্ছি না😪🤧😭",
+    "স্বপ্ন তোমারে নিয়ে দেখতে চাই তুমি যদি আমার হয়ে থেকে যাও-💝🌺🌻",
+    "জান হাঙ্গা করবা-🙊😝🌻",
+    "জান মেয়ে হলে চিপায় আসো ইউটিউব থেকে অনেক ভালোবাসা শিখছি তোমার জন্য-🙊🙈😽",
+    "ইসস এতো ডাকো কেনো লজ্জা লাগে তো-🙈🖤🌼",
+    "আমার বস হৃদয় হাসান শান্ত এর পক্ষ থেকে তোমারে এতো এতো ভালোবাসা-🥰😽🫶 আমার বস হৃদয় হাসান শান্ত এর জন্য সবাই দোয়া করবেন-💝১০টা বিয়ে যেন করতে পারে🤭🤫",
+    "ভালোবাসা নামক আব্লামি করতে মন চাইলে আমার বস (Hriday Hasan Shanto)এর নবক্স চলে যাও-🙊🥱👅 🌻𝐅𝐀𝐂𝐄𝐁𝐎𝐎𝐊 𝐈𝐃 𝐋𝐈𝐍𝐊 🌻:- https://www.facebook.com/share/1C2LvueYdf/",
+    "জান তুমি শুধু আমার আমি তোমারে ৩৬৫ দিন ভালোবাসি-💝🌺😽",
+    "জান বাল ফালাইবা-🙂🥱🙆‍♂",
+    "যেদিন আমলনামা খুলবে, সেদিন অজুহাত নয়—আমলই কথা বলবে📖",
+    "oii-🥺🥹-এক🥄 চামচ ভালোবাসা দিবা-🤏🏻🙂",
+    "আপনার সুন্দরী বান্ধুবীকে ফিতরা হিসেবে আমার বস হৃদয় হাসান শান্ত কে দান করেন-🥱🐰🍒",
+    "ও মিম ও মিম-😇-তুমি কেন চুরি করলা সাদিয়ার ফর্সা হওয়ার ক্রীম-🌚🤧",
+    "আমার পেটে ইঁদুর দৌড়ায়, কিছু খাওয়াও 😋🧀",
+    "𝙂𝙖𝙮𝙚𝙨-🤗-যৌবনের কসম দিয়ে আমারে 𝐁𝐥𝐚𝐜𝐤𝐦𝐚𝐢𝐥 করা হচ্ছে-🥲🤦‍♂️🤧",
+    "-𝗢𝗶𝗶 আন্টি-🙆‍♂️-তোমার মেয়ে চোখ মারে-🥺🥴🐸",
+    "বলুন কী করতে পারি আপনার জন্য",
+    "আজকে প্রপোজ করে দেখো রাজি হইয়া যামু-😌🤗😇",
+    "আমার গল্পে তোমার নানি সেরা-🙊🙆‍♂️🤗",
+    "কি বেপার আপনি শ্বশুর বাড়িতে যাচ্ছেন না কেন-🤔🥱🌻",
+    "দিনশেষে পরের 𝐁𝐎𝐖 সুন্দর-☹️🤧",
+    "তাবিজ কইরা হইলেও প্রেম এক্কান করমুই তাতে যা হই হোক-🤧🥱🌻",
+    "ছোটবেলা ভাবতাম বিয়ে করলে অটোমেটিক বাচ্চা হয়-🥱-ওমা এখন দেখি কাহিনী অন্যরকম-😦🙂🌻",
+    "আজ একটা বিন নেই বলে ফেসবুকের নাগিন-🤧-গুলোরে আমার বস হৃদয় হাসান শান্ত ধরতে পারছে না-🐸🥲",
+    "চুমু থাকতে তোরা বিড়ি খাস কেন বুঝা আমারে-😑😒🐸⚒️",
+    "যে ছেড়ে গেছে-😔-তাকে ভুলে যাও-🙂 \n আমার বস হৃদয় হাসান শান্ত এর সাথে প্রেম করে তাকে দেখিয়ে দাও-🙈🐸🤗",
+    "আগে অনেক খারাপ ছিলাম এখন ভালো হয়ে গেছি🙂",
+    "রূপের অহংকার করো না-🙂❤️চকচকে সূর্যটাও দিনশেষে অন্ধকারে পরিণত হয়-🤗💜",
+    "সুন্দর মাইয়া মানেই-🥱আমার বস boss হৃদয় হাসান শান্ত এর বউ-😽🫶আর বাকি গুলো আমার বেয়াইন-🙈🐸🤗",
+    "এত অহংকার করে লাভ নেই-🌸মৃত্যুটা নিশ্চিত শুধু সময়টা অ'নিশ্চিত-🖤🙂",
+    "দিন দিন কিছু মানুষের কাছে অপ্রিয় হয়ে যাইতেছি-🙂😿🌸",
+    "হুদাই আপনারে শয়তানে লারে-😝😑☹️",
+    "তোমার সাথে কথা বলে মনে হচ্ছে আমি কমেডি কিং 😂🎤",
+    "🥺আজ তুমি কবরবাসীদের জন্য দোয়া করছ, কাল কেউ তোমার জন্য করবে😔",
+    "🤲 গার্লফ্রেন্ডের ভালোবাসার চেয়ে সৃষ্টি-কর্তার ভালোবাসা বেশি নিরাপদ ও চিরস্থায়ী😄",
+    "🥀 মানুষের ভালোবাসা বদলায়, কিন্তু সৃষ্টি-কর্তার ভালোবাসা কখনো বদলায় না🙂",
+    "ইস কেউ যদি বলতো-🙂-আমার শুধু তোমাকেই লাগবে-💜🌸",
+    "বলো তো, চাঁদে যদি বিয়ে করি, হানিমুনে যাবো কিভাবে? 🌝🚀",
+    "একদিন সে ঠিকই ফিরে তাকাবে-😇-আর মুচকি হেসে বলবে তোমার হৃদয় হাসান শান্ত এর মতো আর কেউ ভালবাসেনি-🙂😅",
+    "হুদাই গ্রুপে আছি-🥺🐸-কেও ইনবক্সে নক দিয়ে বলে না জান তোমারে আমি অনেক ভালোবাসি-🥺🤧",
+    "কি'রে গ্রুপে দেখি একটাও বেডি নাই-🙊",
+    "দেশের সব কিছুই চুরি হচ্ছে-🙄-শুধু আমার বস হৃদয় হাসান শান্ত এর মনটা ছাড়া-🥴😑😏",
+    "আজ থেকে আর কাউকে পাত্তা দিমু না -!😏-কারণ আমি ফর্সা হওয়ার ক্রিম কিনছি -!🙂🐸",
+    "বেশি Bot Bot করলে leave নিবো কিন্তু😒😒 ",
+    "এই প্রথম বার বট দেখছো নাকি🥴",
+    "হুদাই ডাকাডাকি করো কেন🙂",
+    "এত কাছেও এসো না,প্রেম এ পরে যাবো তো 🙈",
+    "Bolo Babu, তুমি কি আমাকে ভালোবাসো? 🙈💋 ",
+    "সাদিয়াকে চিনো কী??",
+    "হা বলো😒,কি করতে পারি😐😑?",
+    "আমাকে ডাকলে চকলেট দিতে হবে😒",
+    "মেয়ে হলে বস হৃদয় হাসান শান্ত এর সাথে প্রেম করো🙈??. ",
+    "আরে Bolo আমার জান ,কেমন আসো?😚 ",
+    "অসম্মান করচ্ছিছ কেন,😰😿",
+    "Hop bedi😾,Boss বল boss😼",
+    "আমি তো সিরিয়াস নই, আমি শুধু মজা করি 🤪🎈",
+    "এইটা তুমি করতে পারলে 🫩🥹",
+    "বার বার Disturb করেছিস কোনো😾,আমার বস হৃদয় হাসান শান্ত এর সাথে ব্যাস্ত আসি😋",
+    "আরে আমি মজা করার mood এ নাই😒",
+    "তোমাকে ওইদিন দেখলাম রাস্তায় দাঁড়িয়ে আছো🥴",
+    "দূরে যা, তোর কোনো কাজ নাই, শুধু bot bot করিস 😉😋🤣",
+    "তোর কথা তোর বাড়ি কেউ শুনে না ,তো আমি কোনো শুনবো ?🤔😂 ",
+    "আমাকে ডেকো না,আমি ব্যাস্ত আসি",
+    "কি হলো ,মিস টিস করচ্ছিস নাকি🤣",
+    "বলো কি বলবা, সবার সামনে বলবা নাকি?🤭🤏",
+    "কালকে দেখা করিস তো একটু - খেলাধুলা করবো👀",
+    "হা বলো, শুনছি আমি 😏",
+    "খালি ঢং করে আসে আবার বট বলে চলে যায়🙁😔",
+    "আর কত বার ডাকবি ,শুনছি তো",
+    "মাইয়া হলে আমার বস হৃদয় হাসান শান্ত কে Ummmmha দে 😒",
+    "বলো কি করতে পারি তোমার জন্য",
+    "আমি তো অন্ধ কিছু দেখি না🐸 😎",
+    "কী হয়ছে😌",
+    "বলো জানু 🌚",
+    "তোর কি চোখে পড়ে না আমি বস হৃদয় হাসান শান্ত এর সাথে ব্যাস্ত আসি😒",
+    "༊━━🦋নামাজি মানুষেরা সব থেকে বেশি সুন্দর হয়..!!😇🥀 🦋 কারণ.!! -অজুর পানির মত শ্রেষ্ঠ মেকআপ দুনিয়াতে নেই༊━ღ━༎🥰🥀 🥰-আলহামদুলিল্লাহ-🥰",
+    "🌿 জীবন ভিন্ন পথে যায়, কিন্তু শেষ গন্তব্য একই—মাটি🙂",
+    "𝐈'𝐝 -তে সব 𝐖𝐨𝐰 𝐖𝐨𝐰 বুইড়া বেডি-🐸",
+    "তোমার জন্য আমি খাওয়া-দাওয়া বাদ দিছি🥺",
+    "অনুমতি দিলে 𝚈𝚘𝚞𝚃𝚞𝚋𝚎-এ কল দিতাম..!😒",
+    "~আমি মারা গেলে..!🙂 ~অনেক মানুষ বিরক্ত হওয়া থেকে বেঁচে যাবে..!😅💔",
+    "🍒---আমি সেই গল্পের বই-🙂 -যে বই সবাই পড়তে পারলেও-😌 -অর্থ বোঝার ক্ষমতা কারো নেই..!☺️🥀💔",
+    "~কার জন্য এতো মায়া...!😌🥀 ~এই শহরে আপন বলতে...!😔🥀 ~শুধুই তো নিজের ছায়া...!😥🥀",
+    "কারেন্ট একদম বেডি'গো মতো- 🤧 -খালি ঢং করে আসে আবার চলে যায়-😤😾🔪",
+    "রাত যত গভীর হয়, বাস্তবতা তত ভয়ংকর হয়ে ওঠে\nকী ভাবছো তোমাকেই বলছি🤧🙊",
+    "দুনিয়ার সবাই প্রেম করে.!🤧 -আর মানুষ আমার বস হৃদয় হাসান শান্ত কে সন্দেহ করে.!🐸",
+    "আমার থেকে ভালো অনেক পাবা-🙂 -কিন্তু সব ভালো তে কি আর ভালোবাসা থাকে..!💔🥀",
+    "পুরুষকে সবচেয়ে বেশি কষ্ট দেয় তার শখের নারী...!🥺💔👈",
+    "দুনিয়া থেকে চলে যাওয়ার আগে এমন কিছু করে যেও যাতে সবাই তোমাকে মনে করে🙂❤️‍🩹",
+    "অবহেলা করিস না-😑😪 - যখন নিজেকে বদলে ফেলবো -😌 - তখন আমার চেয়েও বেশি কষ্ট পাবি..!🙂💔",
+    "বন্ধুর সাথে ছেকা খাওয়া গান শুনতে শুনতে-🤧 -এখন আমিও বন্ধুর 𝙴𝚇 কে অনেক 𝙼𝙸𝚂𝚂 করি-🤕🥺",
+    "৯৯টাকায় ৯৯জিবি ৯৯বছর-☺️🐸 -অফারটি পেতে এখনই আমাকে প্রোপস করুন-🤗😂👈",
+    "প্রিয়-🥺 -তোমাকে না পেলে আমি সত্যি-😪 -আরেকজন কে-😼 -পটাতে বাধ্য হবো-😑🤧",
+    "কিরে🫵 তরা নাকি prem করস..😐🐸•আমারে একটা করাই দিলে কি হয়-🥺",
+    "যেই আইডির মায়ায় পড়ে ভুল্লি আমারে.!🥴- তুই কি যানিস সেই আইডিটাও আমি চালাইরে.!🙂"
+  ];
 
-  try {
-    const { threadID, messageID, body } = event;
+  var rand = tl[Math.floor(Math.random() * tl.length)];
 
-    if (!body) return;
+  if ((event.body.toLowerCase() == "MISS YOU") || (event.body.toLowerCase() == "miss you")) {
+    return api.sendMessage("পচা কথা বলবেন না😂 গন্ধ আসে", threadID);
+  };
 
-    const text = body.trim().toLowerCase();
+  if ((event.body.toLowerCase() == "") || (event.body.toLowerCase() == "")) {
+    return api.sendMessage("", threadID);
+  };
 
-    const name = await Users.getNameUser(event.senderID);
+  if ((event.body.toLowerCase() == "..........") || (event.body.toLowerCase() == "")) {
+    return api.sendMessage("type !help", threadID);
+  };
 
-    // =========================================================
-    // 🤖 RANDOM AUTO REPLIES
-    // =========================================================
+  if ((event.body.toLowerCase() == "sim") || (event.body.toLowerCase() == "simsimi")) {
+    return api.sendMessage("simsimi কমান্ড এড় নাই টাইপ করুন baby", threadID);
+  };
 
-    const replies = [
-      "হ্যাঁ বলো 😌 তোমার জন্য কী করতে পারি?",
-      "এত ডাকো কেন? 😒",
-      "বলো, শুনছি আমি 😏",
-      "কী হয়েছে? এভাবে ডাকছো কেন? 🤔",
-      "হুদাই ডাকাডাকি করো কেন? 😂",
-      "আমি এখানে আছি, বলো কী বলবে 😄",
-      "একটু শান্ত হও, তারপর বলো 😌",
-      "বারবার ডাকলে কিন্তু লজ্জা লাগে 🙈",
-      "তোমার কথা শুনছি, বলো 😊",
-      "ওই যে, আবার আমাকে ডাকছে! 😑",
-      "কী ব্যাপার? আমাকে মনে পড়লো নাকি? 😆",
-      "বলো বন্ধু, কী খবর? 🌸",
-      "আজকে এত ডাকাডাকি কেন? 😂",
-      "আমি তো এখানেই আছি 😎",
-      "বলো কী করতে পারি তোমার জন্য?",
-      "আসসালামু আলাইকুম 🌸 বলুন, কী করতে পারি?",
-      "ওয়ালাইকুমুস সালাম 🖤",
-      "ভালো আছো তো? 😊",
-      "মন খারাপ নাকি? 🥺",
-      "হাসো তো একটু 😄",
-      "এত সিরিয়াস কেন? একটু হাসো 😂",
-      "তোমার মেসেজ পেলাম 😌",
-      "কী অবস্থা সবার? 😎",
-      "গ্রুপে এত চুপচাপ কেন? 🤔",
-      "আমি কিন্তু সব দেখছি 👀",
-      "বট বলে অবহেলা করো না কিন্তু 😒",
-      "আমাকে ডাকলে উত্তর দিতেই হবে নাকি? 😂",
-      "ঠিক আছে, বলো কী দরকার 😌",
-      "আমি প্রস্তুত, প্রশ্ন করুন 😎"
-    ];
+  if ((event.body.toLowerCase() == "ওই কিরে") || (event.body.toLowerCase() == "oi keray") || (event.body.toLowerCase() == "...") || (event.body.toLowerCase() == "...")) {
+    return api.sendMessage("মধু মধু রসমালাই 🍆⛏️🐸🤣", threadID);
+  };
 
-    const randomReply =
-      replies[Math.floor(Math.random() * replies.length)];
+  if ((event.body.toLowerCase() == "bc") || (event.body.toLowerCase() == "mc")) {
+    return api.sendMessage("SAME TO YOU😊 ", threadID);
+  };
 
-    // =========================================================
-    // 💙 SPECIAL REPLIES
-    // =========================================================
+  if ((event.body.toLowerCase() == "morning") || (event.body.toLowerCase() == "")) {
+    return api.sendMessage("GOOD MORNING দাত ব্রাশ করে খেয়ে নেও😚", threadID);
+  };
 
-    if (
-      text === "miss you" ||
-      text === "miss u"
-    ) {
-      return api.sendMessage(
-        "আমাকে মিস করার জন্য ধন্যবাদ 😂💙",
-        threadID,
-        messageID
-      );
+  if ((event.body.toLowerCase() == "Hriday Hasan Shanto") || (event.body.toLowerCase() == "Hriday Hasan Shanto")) {
+    return api.sendMessage("সত্যি কথা বলো🤬\nতুমি কী বসকে ভালোবাসো??", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "হৃদয় হাসান শান্ত") || (event.body.toLowerCase() == "হৃদয় হাসান শান্ত") || (event.body.toLowerCase() == "@Hriday Hasan Shanto") || (event.body.toLowerCase() == "হৃদয় হাসান শান্ত")) {
+    return api.sendMessage("উনি এখন কাজে বিজি আছে কি বলবেন আমাকে বলতে পারেন..!😘", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "owner") || (event.body.toLowerCase() == "ceo")) {
+    return api.sendMessage("‎[𝐎𝐖𝐍𝐄𝐑:☞ Hriday Hasan Shanto ", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "Tor boss ke") || (event.body.toLowerCase() == "admin ke ")) {
+    return api.sendMessage("My Creator:Hriday Hasan Shanto", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "admin") || (event.body.toLowerCase() == "boter admin")) {
+    return api.sendMessage("He is Hriday Hasan Shantoッ❤️ তাকে সবাই হৃদয় হাসান শান্ত নামে চিনে🤙", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "ai") || (event.body.toLowerCase() == "Ai")) {
+    return api.sendMessage("If you want to use the AI command, type /ai ", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "chup") || (event.body.toLowerCase() == "stop") || (event.body.toLowerCase() == "চুপ কর") || (event.body.toLowerCase() == "chup kor")) {
+    return api.sendMessage("তুই চুপ চুপ কর আগে হুদাই হুদাই ডাকাডাকি করিস😒", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "আসসালামু আলাইকুম") || (event.body.toLowerCase() == "Assalamualaikum") || (event.body.toLowerCase() == "Assalamu alaikum") || (event.body.toLowerCase() == "Salam ")) {
+    return api.sendMessage("️- ওয়ালাইকুমুস-সালাম-!!🖤", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "sala ami tor boss") || (event.body.toLowerCase() == "sala ami ullas") || (event.body.toLowerCase() == "cup sala ami ullash") || (event.body.toLowerCase() == "madari")) {
+    return api.sendMessage("সরি বস মাফ করে দেন আর এমন ভুল হবে না🥺🙏", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "@Farhana Ontora") || (event.body.toLowerCase() == "@Farhana Ontora ")) {
+    return api.sendMessage("খবরদার কেউ এই আইড়ি মেনশন দিবানা এটা আমার বস Hriday Hasan Shanto এর বউ এর আইড়ি😠🥰⛏️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "Farhana") || (event.body.toLowerCase() == "arohi")) {
+    return api.sendMessage("খবরদার কেউ এই নাম দরে ডাক দিবানা এটা আমার বস Hriday Hasan Shanto এর বউ এর নাম..!😠🥰⛏️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "mim") || (event.body.toLowerCase() == "Mim")) {
+    return api.sendMessage("খবরদার কেউ এই নাম দরে ডাক দিবানা এটা আমার বস Hriday Hasan Shanto এর বউ এর নাম..!😠🥰⛏️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "Arohi") || (event.body.toLowerCase() == "farhana")) {
+    return api.sendMessage("খবরদার কেউ এই নাম দরে ডাক দিবানা এটা আমার বস Hriday Hasan Shanto এর বউ এর নাম..!😠🥰⛏️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "KISS ME") || (event.body.toLowerCase() == "kiss me")) {
+    return api.sendMessage("️ তুমি পঁচা তোমাকে কিস দিবো না 🤭", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "tnx") || (event.body.toLowerCase() == "ধন্যবাদ") || (event.body.toLowerCase() == "thank you") || (event.body.toLowerCase() == "thanks")) {
+    return api.sendMessage("️এতো ধন্যবাদ না দিয়ে হৃদয় হাসান শান্ত বস এর জন্য একটা গার্লফ্রেন্ড খুজে দে🤬🌶️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "....") || (event.body.toLowerCase() == "...") || (event.body.toLowerCase() == "😠") || (event.body.toLowerCase() == "🤬") || (event.body.toLowerCase() == "😾")) {
+    return api.sendMessage("️তুই রাগ করলে তাই আমার কী 🤣 আমি তোকে ভয় পাই নাকি 🙄??🤣", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "Name") || (event.body.toLowerCase() == "name") || (event.body.toLowerCase() == "Tor nam ki")) {
+    return api.sendMessage("️MY NAME IS °_>🔰𝗛𝗿𝗶𝗱𝗼𝘆_𝗕𝗼𝘁🔰", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "Pic de") || (event.body.toLowerCase() == "ss daw")) {
+    return api.sendMessage("️এন থেকে সর দুরে গিয়া মর😒", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "") || (event.body.toLowerCase() == "...")) {
+    return api.sendMessage("️কি গো কলিজা তোমার কি মন খারাপ🥺", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "gf") || (event.body.toLowerCase() == "bf")) {
+    return api.sendMessage("খালি কি তোরাই পেম করবি আমাকেও একটা গার্লফ্রেন্ড দে<🥺", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "") || (event.body.toLowerCase() == "") || (event.body.toLowerCase() == "") || (event.body.toLowerCase() == "") || (event.body.toLowerCase() == "") || (event.body.toLowerCase() == "")) {
+    return api.sendMessage("ভাই তুই এত হাসিস না হাসলে তোরে কীসের মতো যেন লাগে🌚🤣", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "") || (event.body.toLowerCase() == "") || (event.body.toLowerCase() == "Kmon acho") || (event.body.toLowerCase() == "how are you") || (event.body.toLowerCase() == "how are you?")) {
+    return api.sendMessage("আমি তখনই ভালো থাকি যখন আপনাকে হাসতে দেখি🤎☺️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "mon kharap") || (event.body.toLowerCase() == "tmr ki mon kharap")) {
+    return api.sendMessage("আমার সাদা মনে কোনো কাদা নাই...!🌝", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "by") || (event.body.toLowerCase() == "Bye") || (event.body.toLowerCase() == "jaiga") || (event.body.toLowerCase() == "বাই") || (event.body.toLowerCase() == "pore kotha hbe") || (event.body.toLowerCase() == "যাই গা")) {
+    return api.sendMessage("কিরে তুই কই যাস চল একসাথে যাই..!🌚🌶️", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "tumi khaiso") || (event.body.toLowerCase() == "khaicho")) {
+    return api.sendMessage("না ঝাং 🥹 তুমি রান্না করে রাখো আমি এসে খাবো <😘", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "tumi ki amake bhalobaso") || (event.body.toLowerCase() == "tmi ki amake vlo basho")) {
+    return api.sendMessage("হুম ঝাং আমি তোমাকে রাইতে ভলোপাসি🙂", threadID);
+  };
+
+  if ((event.body.toLowerCase() == "ami hriday") || (event.body.toLowerCase() == "kire")) {
+    return api.sendMessage("হ্যা বস কেমন আছেন..?☺️", threadID);
+  };
+
+  mess = "{name}"
+
+  if (event.body.indexOf("/Bot") == 0 || (event.body.indexOf("/bot") == 0)) {
+    var msg = {
+      body: `${name}, ${rand}`
     }
+    return api.sendMessage(msg, threadID, messageID);
+  };
 
-    if (
-      text === "morning" ||
-      text === "good morning"
-    ) {
-      return api.sendMessage(
-        "🌞 GOOD MORNING!\nদাত ব্রাশ করে নাস্তা করে নাও 😄",
-        threadID,
-        messageID
-      );
-    }
+}
 
-    if (
-      text === "good night" ||
-      text === "night"
-    ) {
-      return api.sendMessage(
-        "🌙 GOOD NIGHT!\nভালো করে ঘুমাও 😴✨",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "sim" ||
-      text === "simsimi"
-    ) {
-      return api.sendMessage(
-        "Simsimi কমান্ড ব্যবহার করতে `baby` কমান্ড চেষ্টা করতে পারো 🤖",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "oi keray" ||
-      text === "ওই কিরে"
-    ) {
-      return api.sendMessage(
-        "ওই যে! 😄 কী হয়েছে বলো?",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 👑 OWNER / CREATOR
-    // =========================================================
-
-    if (
-      text === "owner" ||
-      text === "ceo" ||
-      text === "admin" ||
-      text === "boter admin"
-    ) {
-      return api.sendMessage(
-        "👑 𝐎𝐖𝐍𝐄𝐑\n\n💙 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨\n✨ হৃদয় হাসান শান্ত",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "tor boss ke" ||
-      text === "admin ke"
-    ) {
-      return api.sendMessage(
-        "👑 My Creator: হৃদয় হাসান শান্ত\n💙 Hridoy Hasan Shanto",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "hridoy" ||
-      text === "hriday" ||
-      text === "হৃদয়" ||
-      text === "হৃদয়" ||
-      text === "হৃদয় হাসান শান্ত" ||
-      text === "হৃদয় হাসান শান্ত"
-    ) {
-      return api.sendMessage(
-        "💙 হৃদয় হাসান শান্ত এখন কাজে ব্যস্ত আছেন।\nআপনার কথা আমাকে বলতে পারেন 😊",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 🤖 BOT NAME
-    // =========================================================
-
-    if (
-      text === "name" ||
-      text === "tor nam ki" ||
-      text === "তোমার নাম কি" ||
-      text === "তোর নাম কি"
-    ) {
-      return api.sendMessage(
-        "🤖 আমার নাম — 𝐎𝐁𝐨𝐭\n\n👑 Creator: 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨 💙",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // ❤️ LOVE / FRIENDLY
-    // =========================================================
-
-    if (
-      text === "kiss me"
-    ) {
-      return api.sendMessage(
-        "😂 না না, আগে ভালো বন্ধু হও!",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "tnx" ||
-      text === "ধন্যবাদ" ||
-      text === "thank you" ||
-      text === "thanks"
-    ) {
-      return api.sendMessage(
-        "You're welcome! 😊💙",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "gf" ||
-      text === "bf"
-    ) {
-      return api.sendMessage(
-        "😂 আগে ভালো মানুষ হও, তারপর এসব চিন্তা করো!",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "tumi khaiso" ||
-      text === "khaicho" ||
-      text === "তুমি খাইছো"
-    ) {
-      return api.sendMessage(
-        "আমি তো বট 🤖 খাবার খাই না! তুমি ঠিকমতো খেয়ে নাও 😊",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "tumi ki amake bhalobaso" ||
-      text === "tmi ki amake vlo basho"
-    ) {
-      return api.sendMessage(
-        "আমি সবার সাথে বন্ধুর মতো থাকি 😊💙",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 😊 HOW ARE YOU
-    // =========================================================
-
-    if (
-      text === "kmon acho" ||
-      text === "how are you" ||
-      text === "how are you?"
-    ) {
-      return api.sendMessage(
-        "আমি ভালো আছি 😊 তুমি কেমন আছো?",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "mon kharap" ||
-      text === "tmr ki mon kharap"
-    ) {
-      return api.sendMessage(
-        "মন খারাপ করো না 🥺 সব ঠিক হয়ে যাবে ইনশাআল্লাহ 💙",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 👋 BYE
-    // =========================================================
-
-    if (
-      text === "by" ||
-      text === "bye" ||
-      text === "বাই" ||
-      text === "jaiga" ||
-      text === "যাই গা" ||
-      text === "pore kotha hbe"
-    ) {
-      return api.sendMessage(
-        "ঠিক আছে 😊 পরে আবার কথা হবে। ভালো থেকো 💙",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 🤫 STOP
-    // =========================================================
-
-    if (
-      text === "chup" ||
-      text === "stop" ||
-      text === "চুপ কর" ||
-      text === "chup kor"
-    ) {
-      return api.sendMessage(
-        "আচ্ছা আচ্ছা 🤐 আমি চুপ!",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 🕌 ISLAMIC GREETING
-    // =========================================================
-
-    if (
-      text === "আসসালামু আলাইকুম" ||
-      text === "assalamualaikum" ||
-      text === "assalamu alaikum" ||
-      text === "salam"
-    ) {
-      return api.sendMessage(
-        "🌸 ওয়ালাইকুমুস সালাম ওয়া রহমাতুল্লাহি ওয়া বারাকাতুহু 🌸",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 🤖 AI
-    // =========================================================
-
-    if (
-      text === "ai"
-    ) {
-      return api.sendMessage(
-        "🤖 AI ব্যবহার করতে `/ai` কমান্ড লিখুন।",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 📸 PIC
-    // =========================================================
-
-    if (
-      text === "pic de" ||
-      text === "ss daw"
-    ) {
-      return api.sendMessage(
-        "📸 ছবি পাঠানোর কমান্ড ব্যবহার করুন।",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 😄 EMOJI / DOT
-    // =========================================================
-
-    if (
-      text === "...." ||
-      text === "..." ||
-      text === ".........." ||
-      text === "😠" ||
-      text === "🤬" ||
-      text === "😾"
-    ) {
-      return api.sendMessage(
-        "😂 এত রাগ কেন? একটু শান্ত হও!",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 😂 FUNNY
-    // =========================================================
-
-    if (
-      text === "kire"
-    ) {
-      return api.sendMessage(
-        "হ্যাঁ বলো 😄 কী খবর?",
-        threadID,
-        messageID
-      );
-    }
-
-    if (
-      text === "bc" ||
-      text === "mc"
-    ) {
-      return api.sendMessage(
-        "SAME TO YOU 😊",
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 🕊️ RANDOM NO-PREFIX REPLY
-    // =========================================================
-
-    if (
-      text === "obot" ||
-      text === "bot" ||
-      text === "বট"
-    ) {
-      return api.sendMessage(
-        {
-          body: `${name}, ${randomReply}\n\n💙 — 𝐎𝐁𝐨𝐭 | 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨`
-        },
-        threadID,
-        messageID
-      );
-    }
-
-    // =========================================================
-    // 📌 /BOT TRIGGER
-    // =========================================================
-
-    if (
-      body.startsWith("/Bot") ||
-      body.startsWith("/bot")
-    ) {
-      return api.sendMessage(
-        {
-          body:
-            `${name}, ${randomReply}\n\n` +
-            `╭──────────────╮\n` +
-            `   🤖 𝐎𝐁𝐨𝐭 𝐑𝐞𝐩𝐥𝐲\n` +
-            `   👑 𝐇𝐫𝐢𝐝𝐨𝐲 𝐇𝐚𝐬𝐚𝐧 𝐒𝐡𝐚𝐧𝐭𝐨\n` +
-            `╰──────────────╯`
-        },
-        threadID,
-        messageID
-      );
-    }
-
-  } catch (error) {
-    console.error("❌ OBot Error:", error);
-  }
-};
-
-
-// =============================================================
-// 🚀 COMMAND RUN
-// =============================================================
-
-module.exports.run = function ({
-  api,
-  event,
-  client,
-  __GLOBAL
-}) {
-  // No command action
-};
+module.exports.run = function({ api, event, client, __GLOBAL }) { }
