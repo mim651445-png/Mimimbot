@@ -25,8 +25,8 @@ const triggers = [
     "জান",
     "জানু",
     "বেবি",
-    "wifey",
-    "hina",
+    "Ẫḱtẫř Miḿ",
+    "Mim",
     "hinata"
 ];
 
