@@ -1,152 +1,183 @@
+/**
+ * ╔══════════════════════════════════════════════╗
+ * ║              𝐁𝐀𝐁𝐘 𝐁𝐎𝐓 — 𝐕𝟏.𝟎.𝟎             ║
+ * ║            Premium Image Reply              ║
+ * ║                                              ║
+ * ║  Developer : হৃদয় হাসান শান্ত               ║
+ * ║  Version   : 1.0.0                          ║
+ * ╚══════════════════════════════════════════════╝
+ */
+
 const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
 
 module.exports.config = {
   name: "mim",
-  version: "5.0.0",
+  version: "1.0.0",
   hasPermssion: 0,
   credits: "হৃদয় হাসান শান্ত",
-  description: "Random Picture + Stylish Caption",
-  commandCategory: "fun",
+  description: "Random Baby Image Reply Bot",
+  commandCategory: "noprefix",
   usages: "mim",
-  cooldowns: 3
+  cooldowns: 3,
+  dependencies: {
+    "axios": ""
+  }
 };
 
+// ═══════════════════════════════════════════════
+// 🖼️ IMAGE DATABASE
+// ═══════════════════════════════════════════════
+
 const images = [
-  "https://i.imgur.com/plwEiFz.jpeg",
-  "https://i.imgur.com/Y8L9D87.jpeg",
-  "https://i.imgur.com/wfCLM6J.jpeg",
-  "https://i.imgur.com/jdpT7ko.jpeg",
-  "https://i.imgur.com/E2SruZr.jpeg",
-  "https://i.imgur.com/XgzxkNZ.jpeg",
-  "https://i.imgur.com/Sj88I9M.jpeg",
-  "https://i.imgur.com/HD44K0U.jpeg",
-  "https://i.imgur.com/aQusOfn.jpeg",
-  "https://i.imgur.com/35czHnR.jpeg"
+  "https://i.imgur.com/WpiXxKY.jpeg",
+  "https://i.imgur.com/59VndUy.jpeg",
+  "https://i.imgur.com/9pdcRiL.jpeg",
+  "https://i.imgur.com/rAMNUy8.jpeg",
+  "https://i.imgur.com/SwVPWeV.jpeg",
+  "https://i.imgur.com/viW3pN7.jpeg"
 ];
+
+// ═══════════════════════════════════════════════
+// 💬 CAPTION DATABASE
+// ═══════════════════════════════════════════════
 
 const captions = [
-  `╭━━━〔 🥹 𝗠𝗜𝗠 𝗡𝗔 𝗠𝗘𝗬𝗘 〕━━━╮
-┃ 👀 মিম নাকি মেয়ে...?
-┃ 🫣 চোখ বলে এক কথা,
-┃ ❤️ মন বলে আরেক কথা!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 🌚 𝗦𝗣𝗘𝗖𝗜𝗔𝗟 𝗣𝗜𝗖 〕━━━╮
-┃ 😂 মিম ভাবছিলাম...
-┃ 🥹 পরে দেখি ব্যাপারটা সিরিয়াস!
-┃ 👀 তোমার কী মনে হয়?
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 👀 𝗖𝗛𝗘𝗖𝗞 𝗧𝗜𝗠𝗘 〕━━━╮
-┃ 🫣 ভালো করে দেখো...
-┃ 🤭 তারপর বলো—
-┃ 🔥 মিম নাকি মেয়ে?
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 🤣 𝗤𝗨𝗘𝗦𝗧 𝗧𝗜𝗠𝗘 〕━━━╮
-┃ 🌚 এই ছবির আসল রহস্য কী?
-┃ 👀 মিম নাকি মেয়ে?
-┃ 💬 উত্তর দাও তো!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 🥹 𝗩𝗜𝗕𝗘 𝗖𝗛𝗘𝗖𝗞 〕━━━╮
-┃ 🌸 ছবি তো random...
-┃ ✨ কিন্তু vibe একদম অন্যরকম!
-┃ 👀 একবার তাকিয়ে যাও!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 🙈 𝗖𝗔𝗥𝗘𝗙𝗨𝗟 〕━━━╮
-┃ 👀 বেশি তাকাইও না...
-┃ 😂 পরে আবার ক্রাশ খেয়ে বসো!
-┃ 🫣 সাবধান কিন্তু!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 🔥 𝗧𝗢𝗗𝗔𝗬'𝗦 𝗣𝗜𝗖 〕━━━╮
-┃ 📸 আজকের random ছবি!
-┃ 🫣 বিচার করার দায়িত্ব তোমাদের!
-┃ 😎 দেখি কে কী বলে!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 😹 𝗙𝗨𝗡 𝗧𝗜𝗠𝗘 〕━━━╮
-┃ 🌚 মিম বললে মিম...
-┃ 👀 মেয়ে বললে মেয়ে...
-┃ 🤣 সিদ্ধান্ত তোমার!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 🌸 𝗦𝗢𝗙𝗧 𝗩𝗜𝗕𝗘 〕━━━╮
-┃ 🥹 ছবিটা দেখে কিছু বলার নেই...
-┃ ✨ শুধু একবার তাকিয়ে যাও!
-┃ ❤️ ভালো লাগলে react দিও!
-╰━━━━━━━━━━━━━━━━━━━━╯`,
-
-  `╭━━━〔 👑 𝗙𝗜𝗡𝗔𝗟 𝗩𝗘𝗥𝗗𝗜𝗖𝗧 〕━━━╮
-┃ 🧐 তদন্ত করে জানাও...
-┃ 😂 এটা মিম নাকি মেয়ে?
-┃ 👀 উত্তর কিন্তু চাই!
-╰━━━━━━━━━━━━━━━━━━━━╯`
+  "🥺🫶 𝐁𝐚𝐛𝐲 𝐌𝐨𝐝𝐞 𝐎𝐧... 💗",
+  "😽🌸 𝐀𝐡𝐚𝐚𝐚... 𝐒𝐮𝐧𝐝𝐨𝐫 𝐁𝐚𝐛𝐲! 🫶",
+  "🙈💖 𝐁𝐚𝐛𝐲 𝐌𝐨𝐨𝐝 𝐅𝐫𝐨𝐦 𝐇𝐞𝐚𝐫𝐭! 🌸",
+  "🦋✨ 𝐒𝐨 𝐂𝐮𝐭𝐞 𝐘𝐨𝐮 𝐀𝐫𝐞! 🥹💗",
+  "😻🫶 𝐁𝐚𝐛𝐲 𝐕𝐢𝐛𝐞𝐬 𝐎𝐧𝐥𝐲! 🌷",
+  "🥰💫 𝐇𝐞𝐚𝐫𝐭 𝐓𝐨𝐮𝐜𝐡𝐢𝐧𝐠 𝐌𝐨𝐦𝐞𝐧𝐭! 💕"
 ];
 
-module.exports.run = async function ({ api, event }) {
+// ═══════════════════════════════════════════════
+// 🎲 RANDOM FUNCTION
+// ═══════════════════════════════════════════════
 
-  const cacheDir = path.join(__dirname, "cache");
+function randomItem(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
 
+// ═══════════════════════════════════════════════
+// 📦 CONFIG
+// ═══════════════════════════════════════════════
+
+module.exports.handleEvent = async function ({ api, event }) {
   try {
-    await fs.ensureDir(cacheDir);
+    if (!event.body) return;
 
-    const image =
-      images[Math.floor(Math.random() * images.length)];
+    const text = event.body.trim().toLowerCase();
 
-    const caption =
-      captions[Math.floor(Math.random() * captions.length)];
+    const triggers = [
+      "baby",
+      "bby",
+      "babby",
+      "মিম",
+      "bot"
+    ];
 
-    const filePath = path.join(
-      cacheDir,
-      `mim_${Date.now()}.jpg`
-    );
+    if (!triggers.includes(text)) return;
+
+    const imageURL = randomItem(images);
+    const caption = randomItem(captions);
+
+    // ───────────────────────────────────────────
+    // 📥 DOWNLOAD IMAGE
+    // ───────────────────────────────────────────
 
     const response = await axios({
       method: "GET",
-      url: image,
-      responseType: "arraybuffer",
-      timeout: 30000,
+      url: imageURL,
+      responseType: "stream",
+      timeout: 15000,
       headers: {
         "User-Agent": "Mozilla/5.0"
       }
     });
 
-    await fs.writeFile(
-      filePath,
-      Buffer.from(response.data)
-    );
+    // ───────────────────────────────────────────
+    // 📤 SEND IMAGE
+    // ───────────────────────────────────────────
 
-    const finalMessage =
-`${caption}
-
-╭━━━━━━━━━━━━━━━━━━╮
-│ 👑 𝗖𝗿𝗲𝗮𝘁𝗼𝗿 : হৃদয় হাসান শান্ত
-│ 🤖 𝗦𝘆𝘀𝘁𝗲𝗺 : Random Picture
-╰━━━━━━━━━━━━━━━━━━╯`;
-
-    await api.sendMessage(
+    return api.sendMessage(
       {
-        body: finalMessage,
-        attachment: fs.createReadStream(filePath)
+        body:
+          `${caption}\n\n` +
+          `╭───────────────╮\n` +
+          `   🤖 𝐁𝐚𝐛𝐲 𝐁𝐨𝐭\n` +
+          `   👑 𝐃𝐞𝐯 : হৃদয় হাসান শান্ত\n` +
+          `╰───────────────╯`,
+        attachment: response.data
       },
       event.threadID,
-      () => {
-        fs.unlink(filePath).catch(() => {});
-      },
       event.messageID
     );
 
   } catch (error) {
 
-    console.error("❌ MIM ERROR:", error);
+    // ❌ ERROR HANDLER
+    console.error(
+      "[BABY BOT ERROR]",
+      error.message
+    );
 
     return api.sendMessage(
-      "❌ ছবি পাঠানো যাচ্ছে না!\n🔄 কিছুক্ষণ পর আবার চেষ্টা করো।",
+      "❌ 𝐁𝐚𝐛𝐲 𝐁𝐨𝐭 এখন ছবি পাঠাতে পারছে না!\n\n" +
+      "🔄 একটু পরে আবার চেষ্টা করুন।",
+      event.threadID,
+      event.messageID
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════
+// 🚀 COMMAND RUNNER
+// ═══════════════════════════════════════════════
+
+module.exports.run = async function ({
+  api,
+  event
+}) {
+  try {
+
+    const imageURL = randomItem(images);
+    const caption = randomItem(captions);
+
+    const response = await axios({
+      method: "GET",
+      url: imageURL,
+      responseType: "stream",
+      timeout: 15000,
+      headers: {
+        "User-Agent": "Mozilla/5.0"
+      }
+    });
+
+    return api.sendMessage(
+      {
+        body:
+          `${caption}\n\n` +
+          `━━━━━━━━━━━━━━━━━━\n` +
+          `🤖 𝐁𝐚𝐛𝐲 𝐁𝐨𝐭\n` +
+          `👑 𝐃𝐞𝐯 : হৃদয় হাসান শান্ত\n` +
+          `⚡ 𝐕𝐞𝐫𝐬𝐢𝐨𝐧 : 𝟏.𝟎.𝟎\n` +
+          `━━━━━━━━━━━━━━━━━━`,
+        attachment: response.data
+      },
+      event.threadID,
+      event.messageID
+    );
+
+  } catch (error) {
+
+    console.error(
+      "[BABY BOT RUN ERROR]",
+      error.message
+    );
+
+    return api.sendMessage(
+      "❌ Image loading failed!\n" +
+      "🔄 Please try again later.",
       event.threadID,
       event.messageID
     );
