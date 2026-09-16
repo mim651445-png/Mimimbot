@@ -1,34 +1,33 @@
 /**
  * ╔════════════════════════════════════════════════════╗
- * ║                    𝐁𝐀𝐁𝐘 𝐀𝐈 🤖                   ║
- * ║              Messenger Chat AI Module             ║
+ * ║                 𝐁𝐀𝐁𝐘 𝐀𝐈 — 𝐕𝟒.𝟕                  ║
+ * ║          Fast Messenger AI Chat Module            ║
  * ║                                                    ║
  * ║  Developer : হৃদয় হাসান শান্ত                      ║
- * ║  Version   : 2.0.0                                ║
- * ║  Credit    : হৃদয় হাসান শান্ত                      ║
+ * ║  Version   : 4.7                                   ║
+ * ║  Features  : Always Active / Font Style / AI Chat ║
  * ╚════════════════════════════════════════════════════╝
  */
 
 const axios = require("axios");
 
 // =====================================================
-// ERROR: If axios is missing, install it with:
-// npm install axios
+// TRIGGERS
 // =====================================================
 
 const triggers = [
     "baby",
     "bby",
     "babu",
-    "বট",
+    "bbu",
     "jan",
     "bot",
     "জান",
     "জানু",
     "বেবি",
-    "mim",
-    "নিঝুম",
-    "মিম"
+    "wifey",
+    "hina",
+    "hinata"
 ];
 
 // =====================================================
@@ -38,78 +37,34 @@ const triggers = [
 const baseApiUrl = async () => {
     try {
         const response = await axios.get(
-            "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json",
+            "https://raw.githubusercontent.com/mahmud-aura/HINATA/main/baseApiUrl.json",
             { timeout: 15000 }
         );
 
-        if (!response.data || !response.data.mahmud) {
-            throw new Error("Base API URL not found.");
+        if (!response.data?.mahmud) {
+            throw new Error("API URL not found.");
         }
 
         return String(response.data.mahmud).replace(/\/+$/, "");
     } catch (error) {
-        // ERROR: Could not load base API URL
+        // ERROR: Failed to load API base URL
         console.error(
             "[BABY ERROR] Base API:",
             error.response?.data || error.message
         );
-        throw new Error("Baby API is currently unavailable.");
+        throw new Error("Baby API is unavailable.");
     }
 };
 
 // =====================================================
-// RANDOM REPLIES
-// =====================================================
-
-const randomReplies = [
-    "Bolo baby 🥺",
-    "কি বলবে বলো 😼",
-    "হুম, বলো শুনছি 🤭",
-    "আমাকে ডাকছো কেন? 😑",
-    "জি বলো 🐤",
-    "কী খবর? 😌",
-    "আচ্ছা বলো তো 😺",
-    "হুমম... আমি শুনছি 👀",
-    "এত ডাকাডাকি কেন? 😹",
-    "বলো, কী দরকার? 🤍",
-    "হঠাৎ আমাকে মনে পড়লো? 🙄",
-    "Assalamualaikum 🐤",
-    "খাওয়া-দাওয়া করছো? 😋",
-    "আজ কেমন আছো? 🌸",
-    "বলো কী করতে পারি তোমার জন্য 😌",
-    "আরে বলো, কী হয়েছে? 🤭",
-    "আমি এখানে আছি 😼",
-    "কী নিয়ে কথা বলবে? 👀",
-    "হুম, শুনছি তো 🫶",
-    "একটু আস্তে ডাকো 😹"
-];
-
-// =====================================================
-// HELPER: SEND MESSAGE
-// =====================================================
-
-function send(api, message, threadID, messageID) {
-    return new Promise((resolve) => {
-        api.sendMessage(
-            message,
-            threadID,
-            (err, info) => resolve({ err, info }),
-            messageID
-        );
-    });
-}
-
-// =====================================================
-// HELPER: SAVE REPLY
+// SAFE REPLY SAVE
 // =====================================================
 
 function saveReply(info, author, text) {
     try {
         if (
-            info &&
-            info.messageID &&
-            global.GoatBot &&
-            global.GoatBot.onReply &&
+            info?.messageID &&
+            global.GoatBot?.onReply &&
             typeof global.GoatBot.onReply.set === "function"
         ) {
             global.GoatBot.onReply.set(info.messageID, {
@@ -121,54 +76,71 @@ function saveReply(info, author, text) {
             });
         }
     } catch (error) {
-        // ERROR: Reply map could not be saved
-        console.error("[BABY ERROR] Save reply:", error.message);
+        // ERROR: Could not save reply handler
+        console.error("[BABY ERROR] Reply:", error.message);
     }
 }
 
 // =====================================================
-// HELPER: GET AI RESPONSE
+// API REQUEST
 // =====================================================
 
-async function getBotResponse(text, attachments = []) {
+async function getBabyResponse(text, attachments = []) {
     try {
         const baseURL = await baseApiUrl();
 
         const response = await axios.post(
-            `${baseURL}/api/hinata`,
-            {
-                text,
-                style: 3,
-                attachments
-            },
-            {
-                timeout: 30000
-            }
+            `${baseURL}/api/baby?text=${encodeURIComponent(text)}&font=3`,
+            { attachments },
+            { timeout: 30000 }
         );
 
-        if (response.data && response.data.message) {
-            return response.data.message;
-        }
-
-        // ERROR: API returned no message
-        return "দুঃখিত 🥹 কোনো উত্তর পাওয়া যায়নি।";
+        return response.data?.reply ||
+            "দুঃখিত 🥹 কোনো response পাওয়া যায়নি।";
     } catch (error) {
-        // ERROR: AI response request failed
+        // ERROR: Baby API request failed
         console.error(
-            "[BABY ERROR] AI:",
+            "[BABY ERROR] API:",
             error.response?.data || error.message
         );
 
-        return "Baby API এখন একটু ব্যস্ত 🥹 পরে আবার চেষ্টা করো।";
+        return "Baby এখন একটু ব্যস্ত 🥹 একটু পরে আবার বলো।";
     }
 }
 
 // =====================================================
-// COMMAND CONFIG
+// RANDOM REPLIES
+// =====================================================
+
+const randomMessage = [
+    "বলো কি বলবা, সবার সামনে বলবা নাকি? 🤭🤏",
+    "হটাৎ আমাকে মনে পড়লো? 🙄",
+    "𝗔𝘀𝘀𝗮𝗹𝗮𝗺𝘂𝗹𝗮𝗶𝗸𝘂𝗺 🐤",
+    "খাওয়া দাওয়া করসো? 🙄",
+    "আরে Bolo, কেমন আছো? 😚",
+    "আমাকে ডাকলে আমি শুনছি 😼",
+    "বলো, কী করতে পারি তোমার জন্য? 😌",
+    "হুমম... বলো তো 👀",
+    "এত ডাকাডাকি কেন? 😹",
+    "আমি এখানে আছি 🫶",
+    "হঠাৎ আমাকে মনে পড়লো নাকি? 🤭",
+    "বলো Baby, কী হয়েছে? 🥺",
+    "জি বলো 🐤",
+    "কী খবর তোমার? 🌸",
+    "আমাকে ডাকছো কেন? 😑",
+    "হুম, শুনছি তো 😼",
+    "আজ কেমন আছো? 😊",
+    "একটু আস্তে ডাকো 😹",
+    "বলো, কী নিয়ে কথা বলবে? 👀"
+];
+
+// =====================================================
+// CONFIG
 // =====================================================
 
 module.exports.config = {
     name: "baby",
+
     aliases: [
         "bby",
         "bbu",
@@ -179,22 +151,28 @@ module.exports.config = {
         "hinata",
         "hina"
     ],
-    version: "2.0.0",
+
+    version: "4.7",
     author: "হৃদয় হাসান শান্ত",
+
     countDown: 0,
     role: 0,
-    description: "Fast all-in-one Baby AI Chat",
+
+    description:
+        "Always active fast AI chat with multiple font styles.",
+
     category: "chat",
 
     guide: {
         en:
-            "{pn} [message]\n" +
-            "teach [question] - [response]\n" +
-            "remove [question] - [index]\n" +
-            "msg [question]\n" +
+            "{pn} [anyMessage]\n" +
+            "teach [YourMessage] - [Reply]\n" +
+            "remove [YourMessage] - [index]\n" +
+            "rm [YourMessage] - [index]\n" +
+            "msg [YourMessage]\n" +
             "list\n" +
-            "list all\n" +
-            "edit [question] - [new response]"
+            "list all [page]\n" +
+            "edit [YourMessage] - [NewMessage]"
     }
 };
 
@@ -202,31 +180,38 @@ module.exports.config = {
 // ON START
 // =====================================================
 
-module.exports.onStart = async function ({
+module.exports.onStart = async ({
     api,
     event,
     args,
     usersData
-}) {
+}) => {
     const uid = event.senderID;
 
     try {
+        const rawMsg = args.join(" ");
+        const msg = rawMsg.toLowerCase();
+
         // ---------------------------------------------
-        // ERROR: Empty command
+        // EMPTY COMMAND
         // ---------------------------------------------
 
-        if (!args || args.length === 0) {
+        if (!args[0]) {
             const reply =
-                randomReplies[
-                    Math.floor(Math.random() * randomReplies.length)
+                randomMessage[
+                    Math.floor(
+                        Math.random() * randomMessage.length
+                    )
                 ];
 
-            const result = await send(
-                api,
-                reply,
-                event.threadID,
-                event.messageID
-            );
+            const result = await new Promise(resolve => {
+                api.sendMessage(
+                    reply,
+                    event.threadID,
+                    (err, info) => resolve({ err, info }),
+                    event.messageID
+                );
+            });
 
             if (!result.err) {
                 saveReply(result.info, uid, reply);
@@ -242,16 +227,17 @@ module.exports.onStart = async function ({
         // ---------------------------------------------
 
         if (command === "teach") {
-            const input = args.slice(1).join(" ");
-            const parts = input.split(" - ");
+            const input = rawMsg.replace(/^teach\s+/i, "");
 
-            const trigger = parts.shift()?.trim();
-            const responses = parts.join(" - ").trim();
+            const [trigger, ...responsesArr] =
+                input.split(" - ");
+
+            const responses =
+                responsesArr.join(" - ").trim();
 
             if (!trigger || !responses) {
-                return send(
-                    api,
-                    "❌ ব্যবহার:\nteach [question] - [response]",
+                return api.sendMessage(
+                    "❌ | teach [question] - [response1, response2,...]",
                     event.threadID,
                     event.messageID
                 );
@@ -261,9 +247,9 @@ module.exports.onStart = async function ({
                 const baseURL = await baseApiUrl();
 
                 const response = await axios.post(
-                    `${baseURL}/api/jan/teach`,
+                    `${baseURL}/api/teach`,
                     {
-                        trigger: trigger.toLowerCase(),
+                        trigger: trigger.trim(),
                         responses,
                         userID: uid
                     },
@@ -273,36 +259,33 @@ module.exports.onStart = async function ({
                 let userName = "Unknown User";
 
                 try {
-                    if (usersData && typeof usersData.getName === "function") {
-                        userName =
-                            (await usersData.getName(uid)) ||
-                            "Unknown User";
-                    }
+                    userName =
+                        (await usersData.getName(
+                            parseInt(uid, 10)
+                        )) || "Unknown User";
                 } catch {
-                    // ERROR: Could not fetch teacher name
+                    // ERROR: Could not get teacher name
                 }
 
-                return send(
-                    api,
-                    `✅ Reply added successfully!\n\n` +
-                        `💬 Question: ${trigger}\n` +
-                        `📝 Reply: ${responses}\n` +
-                        `👤 Teacher: ${userName}\n` +
-                        `📊 Total: ${response.data?.count || 0}\n\n` +
-                        `👑 Developer: হৃদয় হাসান শান্ত`,
+                return api.sendMessage(
+                    `✅ Replies added!\n\n` +
+                    `💬 Question: "${trigger}"\n` +
+                    `📝 Reply: "${responses}"\n` +
+                    `👤 Teacher: ${userName}\n` +
+                    `📊 Total: ${response.data?.count || 0}\n\n` +
+                    `👑 Developer: হৃদয় হাসান শান্ত`,
                     event.threadID,
                     event.messageID
                 );
             } catch (error) {
-                // ERROR: Teach API failed
+                // ERROR: Teach request failed
                 console.error(
                     "[BABY ERROR] Teach:",
                     error.response?.data || error.message
                 );
 
-                return send(
-                    api,
-                    "❌ Teach request failed. API unavailable.",
+                return api.sendMessage(
+                    "❌ Teach request failed.",
                     event.threadID,
                     event.messageID
                 );
@@ -310,24 +293,25 @@ module.exports.onStart = async function ({
         }
 
         // ---------------------------------------------
-        // REMOVE
+        // REMOVE / RM
         // ---------------------------------------------
 
         if (command === "remove" || command === "rm") {
-            const input = args.slice(1).join(" ");
-            const parts = input.split(" - ");
+            const input = rawMsg.replace(
+                /^(remove|rm)\s+/i,
+                ""
+            );
 
-            const trigger = parts.shift()?.trim();
-            const index = parts.shift()?.trim();
+            const [trigger, index] =
+                input.split(" - ");
 
             if (
                 !trigger ||
                 !index ||
-                Number.isNaN(Number(index))
+                isNaN(index)
             ) {
-                return send(
-                    api,
-                    "❌ ব্যবহার:\nremove [question] - [index]",
+                return api.sendMessage(
+                    "❌ | remove [question] - [index]",
                     event.threadID,
                     event.messageID
                 );
@@ -337,31 +321,30 @@ module.exports.onStart = async function ({
                 const baseURL = await baseApiUrl();
 
                 const response = await axios.delete(
-                    `${baseURL}/api/jan/remove`,
+                    `${baseURL}/api/teach/remove`,
                     {
                         data: {
-                            trigger: trigger.toLowerCase(),
+                            trigger: trigger.trim(),
                             index: parseInt(index, 10)
                         },
                         timeout: 30000
                     }
                 );
 
-                return send(
-                    api,
-                    `✅ ${response.data?.message || "Reply removed successfully."}`,
+                return api.sendMessage(
+                    response.data?.message ||
+                    "✅ Reply removed.",
                     event.threadID,
                     event.messageID
                 );
             } catch (error) {
-                // ERROR: Remove API failed
+                // ERROR: Remove request failed
                 console.error(
                     "[BABY ERROR] Remove:",
                     error.response?.data || error.message
                 );
 
-                return send(
-                    api,
+                return api.sendMessage(
                     "❌ Remove request failed.",
                     event.threadID,
                     event.messageID
@@ -375,79 +358,120 @@ module.exports.onStart = async function ({
 
         if (command === "list") {
             try {
+                const isAll =
+                    args[1] === "all" ||
+                    !isNaN(args[1]);
+
+                const endpoint =
+                    isAll ? "/list/all" : "/list";
+
                 const baseURL = await baseApiUrl();
 
-                const all = String(args[1] || "").toLowerCase() === "all";
-
-                const endpoint = all
-                    ? "/list/all"
-                    : "/list";
-
                 const response = await axios.get(
-                    `${baseURL}/api/jan${endpoint}`,
+                    `${baseURL}/api/teach${endpoint}`,
                     { timeout: 30000 }
                 );
 
-                if (!all) {
-                    return send(
-                        api,
+                if (!isAll) {
+                    return api.sendMessage(
                         response.data?.message ||
-                            "📋 No list information found.",
+                        "No list found.",
                         event.threadID,
                         event.messageID
                     );
                 }
 
-                const data = response.data?.data || {};
+                let page =
+                    parseInt(
+                        !isNaN(args[1])
+                            ? args[1]
+                            : args[2],
+                        10
+                    ) || 1;
 
-                const entries = Object.entries(data)
-                    .sort((a, b) => Number(b[1]) - Number(a[1]))
-                    .slice(0, 100);
+                const limit = 100;
+                const rawData =
+                    response.data?.data || {};
 
-                let message =
-                    "╭━━━〔 👑 BABY TEACHERS 〕━━━╮\n\n";
+                const teachers = [];
 
-                for (let i = 0; i < entries.length; i++) {
-                    const [userID, count] = entries[i];
-
-                    let name = "Unknown User";
+                for (
+                    const userID of Object.keys(rawData)
+                ) {
+                    let name = "Unknown";
 
                     try {
-                        if (
-                            usersData &&
-                            typeof usersData.getName === "function"
-                        ) {
-                            name =
-                                (await usersData.getName(userID)) ||
-                                "Unknown User";
-                        }
-                    } catch {
-                        // ERROR: Teacher name unavailable
+                        name =
+                            (await usersData.getName(
+                                parseInt(userID, 10)
+                            )) || "Unknown";
+                    } catch (error) {
+                        // ERROR: Teacher name lookup failed
                     }
 
+                    teachers.push({
+                        name,
+                        value: rawData[userID]
+                    });
+                }
+
+                teachers.sort(
+                    (a, b) => b.value - a.value
+                );
+
+                const totalPages =
+                    Math.ceil(
+                        teachers.length / limit
+                    ) || 1;
+
+                if (page < 1) page = 1;
+                if (page > totalPages)
+                    page = totalPages;
+
+                const start =
+                    (page - 1) * limit;
+
+                const paginatedData =
+                    teachers.slice(
+                        start,
+                        start + limit
+                    );
+
+                let message =
+                    "👑 𝐁𝐀𝐁𝐘 𝐓𝐄𝐀𝐂𝐇𝐄𝐑𝐒\n\n";
+
+                for (
+                    let i = 0;
+                    i < paginatedData.length;
+                    i++
+                ) {
+                    const teacher =
+                        paginatedData[i];
+
                     message +=
-                        `${i + 1}. ${name} — ${count}\n`;
+                        `${start + i + 1}. ` +
+                        `${teacher.name}: ` +
+                        `${teacher.value}\n`;
                 }
 
                 message +=
-                    `\n╰━━━━━━━━━━━━━━━━━━━━╯\n` +
-                    `👑 Developer: হৃদয় হাসান শান্ত`;
+                    `\n📄 Page: ${page}/${totalPages}` +
+                    `\n👥 Total Teacher: ${teachers.length}` +
+                    `\n👑 Developer: হৃদয় হাসান শান্ত`;
 
-                return send(
-                    api,
+                return api.sendMessage(
                     message,
                     event.threadID,
                     event.messageID
                 );
             } catch (error) {
-                // ERROR: List API failed
+                // ERROR: List request failed
                 console.error(
                     "[BABY ERROR] List:",
                     error.response?.data || error.message
                 );
 
-                return send(
-                    api,
+                return api.sendMessage(
                     "❌ Could not load teacher list.",
                     event.threadID,
                     event.messageID
@@ -460,16 +484,22 @@ module.exports.onStart = async function ({
         // ---------------------------------------------
 
         if (command === "edit") {
-            const input = args.slice(1).join(" ");
-            const parts = input.split(" - ");
+            const input = rawMsg.replace(
+                /^edit\s+/i,
+                ""
+            );
 
-            const oldTrigger = parts.shift()?.trim();
-            const newResponse = parts.join(" - ").trim();
+            const [
+                oldTrigger,
+                ...newArr
+            ] = input.split(" - ");
+
+            const newResponse =
+                newArr.join(" - ").trim();
 
             if (!oldTrigger || !newResponse) {
-                return send(
-                    api,
-                    "❌ ব্যবহার:\nedit [question] - [newResponse]",
+                return api.sendMessage(
+                    "❌ | edit [question] - [newResponse]",
                     event.threadID,
                     event.messageID
                 );
@@ -479,32 +509,31 @@ module.exports.onStart = async function ({
                 const baseURL = await baseApiUrl();
 
                 await axios.put(
-                    `${baseURL}/api/jan/edit`,
+                    `${baseURL}/api/teach/edit`,
                     {
-                        oldTrigger: oldTrigger.toLowerCase(),
+                        oldTrigger:
+                            oldTrigger.trim(),
                         newResponse
                     },
                     { timeout: 30000 }
                 );
 
-                return send(
-                    api,
+                return api.sendMessage(
                     `✅ Edited successfully!\n\n` +
-                        `🔹 Old: ${oldTrigger}\n` +
-                        `🔹 New: ${newResponse}\n\n` +
-                        `👑 হৃদয় হাসান শান্ত`,
+                    `🔹 Question: ${oldTrigger}\n` +
+                    `🔹 New Reply: ${newResponse}\n\n` +
+                    `👑 Developer: হৃদয় হাসান শান্ত`,
                     event.threadID,
                     event.messageID
                 );
             } catch (error) {
-                // ERROR: Edit API failed
+                // ERROR: Edit request failed
                 console.error(
                     "[BABY ERROR] Edit:",
                     error.response?.data || error.message
                 );
 
-                return send(
-                    api,
+                return api.sendMessage(
                     "❌ Edit request failed.",
                     event.threadID,
                     event.messageID
@@ -513,15 +542,18 @@ module.exports.onStart = async function ({
         }
 
         // ---------------------------------------------
-        // MSG
+        // MSG / MESSAGE
         // ---------------------------------------------
 
-        if (command === "msg") {
-            const searchTrigger = args.slice(1).join(" ").trim();
+        if (
+            command === "message" ||
+            command === "msg"
+        ) {
+            const searchTrigger =
+                args.slice(1).join(" ").trim();
 
             if (!searchTrigger) {
-                return send(
-                    api,
+                return api.sendMessage(
                     "❌ Please provide a message to search.",
                     event.threadID,
                     event.messageID
@@ -532,33 +564,32 @@ module.exports.onStart = async function ({
                 const baseURL = await baseApiUrl();
 
                 const response = await axios.get(
-                    `${baseURL}/api/jan/msg`,
+                    `${baseURL}/api/teach/msg`,
                     {
                         params: {
-                            userMessage: `msg ${searchTrigger}`
+                            userMessage:
+                                `msg ${searchTrigger}`
                         },
                         timeout: 30000
                     }
                 );
 
-                return send(
-                    api,
+                return api.sendMessage(
                     response.data?.message ||
-                        "No message found.",
+                    "No message found.",
                     event.threadID,
                     event.messageID
                 );
             } catch (error) {
-                // ERROR: MSG API failed
+                // ERROR: Message search failed
                 console.error(
-                    "[BABY ERROR] Msg:",
+                    "[BABY ERROR] MSG:",
                     error.response?.data || error.message
                 );
 
-                return send(
-                    api,
+                return api.sendMessage(
                     error.response?.data?.error ||
-                        "❌ Message search failed.",
+                    "❌ Message search failed.",
                     event.threadID,
                     event.messageID
                 );
@@ -566,35 +597,37 @@ module.exports.onStart = async function ({
         }
 
         // ---------------------------------------------
-        // NORMAL AI CHAT
+        // NORMAL BABY AI
         // ---------------------------------------------
 
-        const text = args.join(" ").trim();
+        const attachments =
+            event.attachments || [];
 
-        if (!text) {
-            return send(
-                api,
-                "Bolo baby 🥺",
-                event.threadID,
-                event.messageID
+        const response =
+            await getBabyResponse(
+                msg,
+                attachments
+            );
+
+        const result =
+            await new Promise(resolve => {
+                api.sendMessage(
+                    response,
+                    event.threadID,
+                    (err, info) =>
+                        resolve({ err, info }),
+                    event.messageID
+                );
+            });
+
+        if (!result.err) {
+            saveReply(
+                result.info,
+                uid,
+                response
             );
         }
 
-        const botResponse = await getBotResponse(
-            text.toLowerCase(),
-            event.attachments || []
-        );
-
-        const result = await send(
-            api,
-            botResponse,
-            event.threadID,
-            event.messageID
-        );
-
-        if (!result.err) {
-            saveReply(result.info, uid, botResponse);
-        }
     } catch (error) {
         // ERROR: Main onStart handler
         console.error(
@@ -602,9 +635,8 @@ module.exports.onStart = async function ({
             error.response?.data || error.message
         );
 
-        return send(
-            api,
-            "❌ Baby command error. Please try again.",
+        return api.sendMessage(
+            "❌ Baby command error.",
             event.threadID,
             event.messageID
         );
@@ -615,78 +647,78 @@ module.exports.onStart = async function ({
 // ON REPLY
 // =====================================================
 
-module.exports.onReply = async function ({ api, event }) {
-    if (event.type !== "message_reply") return;
+module.exports.onReply = async ({
+    api,
+    event
+}) => {
+    if (event.type !== "message_reply")
+        return;
 
     try {
         const text =
-            String(event.body || "meow")
-                .toLowerCase()
-                .trim();
+            String(event.body || "")
+                .toLowerCase();
 
-        const botResponse = await getBotResponse(
-            text,
-            event.attachments || []
-        );
+        const attachments =
+            event.attachments || [];
 
-        const result = await send(
-            api,
-            botResponse,
-            event.threadID,
-            event.messageID
-        );
+        const response =
+            await getBabyResponse(
+                text,
+                attachments
+            );
+
+        const result =
+            await new Promise(resolve => {
+                api.sendMessage(
+                    response,
+                    event.threadID,
+                    (err, info) =>
+                        resolve({ err, info }),
+                    event.messageID
+                );
+            });
 
         if (!result.err) {
             saveReply(
                 result.info,
                 event.senderID,
-                botResponse
+                response
             );
         }
+
     } catch (error) {
-        // ERROR: onReply handler
+        // ERROR: Reply handler failed
         console.error(
             "[BABY ERROR] onReply:",
             error.response?.data || error.message
-        );
-
-        return send(
-            api,
-            "❌ Reply processing failed 🥹",
-            event.threadID,
-            event.messageID
         );
     }
 };
 
 // =====================================================
-// ON CHAT / NO PREFIX
+// ON CHAT / ALWAYS ACTIVE
 // =====================================================
 
-module.exports.onChat = async function ({
+module.exports.onChat = async ({
     api,
     event
-}) {
+}) => {
     try {
-        if (!event.body) return;
+        const body =
+            event.body
+                ? String(event.body).toLowerCase()
+                : "";
 
-        if (event.type === "message_reply") return;
+        if (!body) return;
 
-        const message = String(event.body)
-            .toLowerCase()
-            .trim();
-
-        if (!message) return;
-
-        const matchedTrigger = triggers.find(
-            (word) =>
-                message === word ||
-                message.startsWith(word + " ")
-        );
+        const matchedTrigger =
+            triggers.find(word =>
+                body === word ||
+                body.startsWith(word + " ")
+            );
 
         if (!matchedTrigger) return;
-
-        const attachments = event.attachments || [];
 
         // ---------------------------------------------
         // REACTION
@@ -701,58 +733,61 @@ module.exports.onChat = async function ({
             );
         } catch (error) {
             // ERROR: Reaction failed
-            console.error(
-                "[BABY ERROR] Reaction:",
-                error.message
-            );
         }
 
         // ---------------------------------------------
-        // TYPING INDICATOR
+        // REMOVE TRIGGER
         // ---------------------------------------------
 
-        try {
-            api.sendTypingIndicator(
-                event.threadID,
-                true
-            );
-        } catch (error) {
-            // ERROR: Typing indicator failed
-            console.error(
-                "[BABY ERROR] Typing:",
-                error.message
-            );
-        }
+        const text =
+            body
+                .replace(
+                    new RegExp(
+                        `^${matchedTrigger}\\s*`,
+                        "i"
+                    ),
+                    ""
+                )
+                .trim();
+
+        const attachments =
+            event.attachments || [];
 
         // ---------------------------------------------
-        // ONLY TRIGGER = RANDOM REPLY
+        // ONLY "BABY" = RANDOM RESPONSE
         // ---------------------------------------------
 
-        const cleanText = message
-            .substring(matchedTrigger.length)
-            .trim();
-
-        if (!cleanText && attachments.length === 0) {
-            const reply =
-                randomReplies[
+        if (
+            !text &&
+            attachments.length === 0
+        ) {
+            const babyMessage =
+                randomMessage[
                     Math.floor(
                         Math.random() *
-                            randomReplies.length
+                        randomMessage.length
                     )
                 ];
 
-            const result = await send(
-                api,
-                reply,
-                event.threadID,
-                event.messageID
-            );
+            const result =
+                await new Promise(resolve => {
+                    api.sendMessage(
+                        babyMessage,
+                        event.threadID,
+                        (err, info) =>
+                            resolve({
+                                err,
+                                info
+                            }),
+                        event.messageID
+                    );
+                });
 
             if (!result.err) {
                 saveReply(
                     result.info,
                     event.senderID,
-                    reply
+                    babyMessage
                 );
             }
 
@@ -760,28 +795,37 @@ module.exports.onChat = async function ({
         }
 
         // ---------------------------------------------
-        // TRIGGER + MESSAGE = AI RESPONSE
+        // AI RESPONSE
         // ---------------------------------------------
 
-        const botResponse = await getBotResponse(
-            cleanText || message,
-            attachments
-        );
+        const response =
+            await getBabyResponse(
+                text || body,
+                attachments
+            );
 
-        const result = await send(
-            api,
-            botResponse,
-            event.threadID,
-            event.messageID
-        );
+        const result =
+            await new Promise(resolve => {
+                api.sendMessage(
+                    response,
+                    event.threadID,
+                    (err, info) =>
+                        resolve({
+                            err,
+                            info
+                        }),
+                    event.messageID
+                );
+            });
 
         if (!result.err) {
             saveReply(
                 result.info,
                 event.senderID,
-                botResponse
+                response
             );
         }
+
     } catch (error) {
         // ERROR: Main onChat handler
         console.error(
